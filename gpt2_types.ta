@@ -1,0 +1,27 @@
+// Generated from config.json
+const VOCAB_SIZE = 50257;
+const N_EMBD = 768;
+const N_INNER = 3072;
+const N_CTX = 1024;
+const N_LAYER = 12;
+
+type EmbeddingTable = Tensor<f32, {50257, 768}, Global, RowMajor>;
+type PositionalEmbedding = Tensor<f32, {1024, 768}, Global, RowMajor>;
+
+type QKVWeight = Tensor<f32, {768, 2304}, Global, RowMajor>;
+type QKVBias = Tensor<f32, {2304}, Global, RowMajor>;
+
+type AttnProjWeight = Tensor<f32, {768, 768}, Global, RowMajor>;
+type AttnProjBias = Tensor<f32, {768}, Global, RowMajor>;
+
+type MLPWeight1 = Tensor<f32, {768, 3072}, Global, RowMajor>;
+type MLPBias1 = Tensor<f32, {3072}, Global, RowMajor>;
+
+type MLPWeight2 = Tensor<f32, {3072, 768}, Global, RowMajor>;
+type MLPBias2 = Tensor<f32, {768}, Global, RowMajor>;
+
+type LayerNormWeight = Tensor<f32, {768}, Global, RowMajor>;
+type LayerNormBias = Tensor<f32, {768}, Global, RowMajor>;
+
+type Tile32x32 = Tensor<f32, {32, 32}, TileReg, RowMajor>;
+type Vec32 = Tensor<f32, {32}, TileReg, RowMajor>;
