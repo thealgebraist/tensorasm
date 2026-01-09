@@ -1,0 +1,19 @@
+type T = Tensor<f32, {2,2}, TileReg, RowMajor>;
+
+kernel test(T a, T b) {
+  a = 1.0;
+  EXP(a);
+  REDUCE(a); // should be approx 2 * 2 * e^1 = 4 * 2.718 = 10.87
+
+  a = 4.0;
+  SQRT(a);
+  REDUCE(a); // should be 2 * 2 * 2 = 8
+
+  b = 0.5;
+  TRANSPOSE(a, b);
+  REDUCE(a); // should be 2 * 2 * 0.5 = 2
+
+  a = 0.0;
+  ACT(a, 2); // SILU(0) = 0
+  REDUCE(a); // should be 0
+}

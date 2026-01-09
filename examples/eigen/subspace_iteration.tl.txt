@@ -1,0 +1,22 @@
+target AppleM2 {
+    cores = 8;
+}
+
+type Matrix = Tensor<f32, {1024, 1024}, Global, RowMajor>;
+type Subspace = Tensor<f32, {1024, 64}, Global, RowMajor>;
+type Tile = Tensor<f32, {32, 32}, TileReg, Tiled(32x32)>;
+
+kernel SubspaceStep(Matrix A, Subspace V, Subspace V_new) {
+    Tile tA;
+    Tile tV;
+    Tile tRes;
+
+    batch (i = 0 .. 1024 step 32) {
+        batch (j = 0 .. 64 step 32) {
+            LOAD(tA, A[i]);
+            LOAD(tV, V[j]);
+            MMUL(tRes, tA, tV);
+            STORE(V_new[i], tRes);
+        }
+    }
+}

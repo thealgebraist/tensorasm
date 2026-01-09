@@ -1,0 +1,6 @@
+type T = Tensor<f32, {2,2}, TileReg, RowMajor>;
+
+kernel binary_ops(T a, T b, T out) {
+  out = (a + b) * 2;
+  REDUCE(out);
+}

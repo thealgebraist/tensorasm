@@ -1,0 +1,18 @@
+type Acc = Tensor<f32, {4,4}, TileReg, RowMajor>;
+type A = Tensor<f32, {4,2}, Global, RowMajor>;
+type B = Tensor<f32, {2,4}, Global, RowMajor>;
+type C = Tensor<f32, {4,4}, Global, RowMajor>;
+
+type ATile = Tensor<f32, {4,2}, TileReg, RowMajor>;
+type BTile = Tensor<f32, {2,4}, TileReg, RowMajor>;
+
+kernel prodrect44(Acc acc, A a, B b, C c) {
+  ATile at;
+  BTile bt;
+  acc = 0;
+  LOAD(at, a);
+  LOAD(bt, b);
+  MMUL(acc, at, bt);
+  STORE(c, acc);
+  REDUCE(c);
+}

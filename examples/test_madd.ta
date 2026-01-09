@@ -1,0 +1,11 @@
+type Acc = Tensor<f32, {2,2}, TileReg, RowMajor>;
+type A = Tensor<f32, {2,2}, TileReg, RowMajor>;
+type B = Tensor<f32, {2,2}, TileReg, RowMajor>;
+type C = Tensor<f32, {2,2}, TileReg, RowMajor>;
+type Out = Tensor<f32, {2,2}, Global, RowMajor>;
+
+kernel test_madd(Acc acc, A a, B b, C c, Out out) {
+  acc = 0;
+  MADD(acc, a, b, c);
+  STORE(out, acc);
+}

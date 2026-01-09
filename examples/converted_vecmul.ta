@@ -1,0 +1,18 @@
+type Acc = Tensor<f32, {3}, TileReg, RowMajor>;
+type M = Tensor<f32, {3,3}, Global, RowMajor>;
+type V = Tensor<f32, {3}, Global, RowMajor>;
+type Out = Tensor<f32, {3}, Global, RowMajor>;
+
+type M_Tile = Tensor<f32, {3,3}, TileReg, RowMajor>;
+type V_Tile = Tensor<f32, {3}, TileReg, RowMajor>;
+
+kernel vecmul(Acc acc, M A, V x, Out y) {
+  M_Tile at;
+  V_Tile xt;
+  acc = 0;
+  LOAD(at, A);
+  LOAD(xt, x);
+  MMUL(acc, at, xt);
+  STORE(y, acc);
+  REDUCE(y);
+}

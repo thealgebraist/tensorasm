@@ -1,0 +1,7 @@
+type Vec = Tensor<f32, {4}, TileReg, RowMajor>;
+type Out = Tensor<f32, {4}, Global, RowMajor>;
+
+kernel test_softmax(Vec v, Out out) {
+  SOFTMAX(v);
+  STORE(out, v);
+}

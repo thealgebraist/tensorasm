@@ -1,0 +1,8 @@
+type M = Tensor<f32, {3,3}, Global, RowMajor>;
+type C = Tensor<f32, {3,3}, Global, RowMajor>;
+
+kernel ls(M a, C c) {
+  LOAD(a, 7);
+  STORE(c, a);
+  REDUCE(c);
+}

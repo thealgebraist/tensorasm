@@ -1,0 +1,18 @@
+type Acc = Tensor<f32, {3,3}, TileReg, RowMajor>;
+type W = Tensor<f32, {3,3}, Global, RowMajor>;
+type X = Tensor<f32, {3,3}, Global, RowMajor>;
+type Y = Tensor<f32, {3,3}, Global, RowMajor>;
+
+type W_Tile = Tensor<f32, {3,3}, TileReg, RowMajor>;
+type X_Tile = Tensor<f32, {3,3}, TileReg, RowMajor>;
+
+kernel product(Acc acc, W A, X B, Y C) {
+  W_Tile at;
+  X_Tile bt;
+  acc = 0;
+  LOAD(at, A);
+  LOAD(bt, B);
+  MMUL(acc, at, bt);
+  STORE(C, acc);
+  REDUCE(C);
+}

@@ -1,0 +1,22 @@
+type Vec = Tensor<f32, {768}, TileReg, RowMajor>;
+type Weights = Tensor<f32, {768}, Global, RowMajor>;
+
+kernel rmsnorm(Vec x, Weights gamma, Vec out) {
+  Vec x2;
+  Vec scale;
+  const EPS = 0.00001;
+  const DIM = 768;
+
+  x2 = x * x;
+  REDUCE(x2); // sum(x^2)
+  
+  // y = x * rsqrt(sum(x^2)/768 + eps) * gamma
+  // We don't have rsqrt or mean in one go, so:
+  // mean_x2 = sum(x^2) / 768
+  // std = sqrt(mean_x2 + eps)
+  // out = (x / std) * gamma
+  
+  // Note: REDUCE in current interpreter/compiler prints to stdout.
+  // This is a limitation for using the result in further calculations.
+  // I might need a way to get the reduced value into a scalar.
+}

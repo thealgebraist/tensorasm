@@ -1,0 +1,17 @@
+type Tile = Tensor<f32, {16,16}, TileReg, RowMajor>;
+type Weight = Tensor<f32, {16,16}, Global, RowMajor>;
+type Input = Tensor<f32, {16,16}, Global, RowMajor>;
+type Output = Tensor<f32, {16,16}, Global, RowMajor>;
+
+type W_Tile = Tensor<f32, {16,16}, TileReg, RowMajor>;
+type I_Tile = Tensor<f32, {16,16}, TileReg, RowMajor>;
+
+kernel matmul(Tile acc, Weight W, Input x, Output y) {
+  W_Tile wt;
+  I_Tile it;
+  acc = 0;
+  LOAD(wt, W);
+  LOAD(it, x);
+  MMUL(acc, wt, it);
+  STORE(y, acc);
+}

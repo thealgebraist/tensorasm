@@ -1,0 +1,18 @@
+type Acc = Tensor<f32, {5,5}, TileReg, RowMajor>;
+type A = Tensor<f32, {5,5}, Global, RowMajor>;
+type B = Tensor<f32, {5,5}, Global, RowMajor>;
+type C = Tensor<f32, {5,5}, Global, RowMajor>;
+
+type ATile = Tensor<f32, {5,5}, TileReg, RowMajor>;
+type BTile = Tensor<f32, {5,5}, TileReg, RowMajor>;
+
+kernel product5(Acc acc, A a, B b, C c) {
+  ATile at;
+  BTile bt;
+  acc = 0;
+  LOAD(at, a);
+  LOAD(bt, b);
+  MMUL(acc, at, bt);
+  STORE(c, acc);
+  REDUCE(c);
+}

@@ -1,0 +1,18 @@
+type Tile = Tensor<f32, {2,2}, TileReg, RowMajor>;
+type W = Tensor<f32, {2,2}, Global, RowMajor>;
+type X = Tensor<f32, {2,2}, Global, RowMajor>;
+type Y = Tensor<f32, {2,2}, Global, RowMajor>;
+
+type W_Tile = Tensor<f32, {2,2}, TileReg, RowMajor>;
+type X_Tile = Tensor<f32, {2,2}, TileReg, RowMajor>;
+
+kernel known(Tile acc, W Wm, X Xm, Y Ym) {
+  W_Tile wt;
+  X_Tile xt;
+  acc = 0;
+  LOAD(wt, Wm);
+  LOAD(xt, Xm);
+  MMUL(acc, wt, xt);
+  STORE(Ym, acc);
+  REDUCE(Ym);
+}

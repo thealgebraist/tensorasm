@@ -1,0 +1,46 @@
+examples/dsl_product_2x2.cpp:45:7: error: no viable overloaded '='
+   45 |   acc = 0;
+      |   ~~~ ^ ~
+/opt/homebrew/include/eigen3/Eigen/src/Core/Matrix.h:210:59: note: candidate function not viable: no known conversion from 'int' to 'const Matrix<float, 2, 2, 1>' for 1st argument
+  210 |   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr Matrix& operator=(const Matrix& other) { return Base::_set(other); }
+      |                                                           ^         ~~~~~~~~~~~~~~~~~~~
+/opt/homebrew/include/eigen3/Eigen/src/Core/Matrix.h:223:49: note: candidate template ignored: could not match 'DenseBase<OtherDerived>' against 'int'
+  223 |   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Matrix& operator=(const DenseBase<OtherDerived>& other) {
+      |                                                 ^
+/opt/homebrew/include/eigen3/Eigen/src/Core/Matrix.h:232:49: note: candidate template ignored: could not match 'EigenBase<OtherDerived>' against 'int'
+  232 |   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Matrix& operator=(const EigenBase<OtherDerived>& other) {
+      |                                                 ^
+/opt/homebrew/include/eigen3/Eigen/src/Core/Matrix.h:237:49: note: candidate template ignored: could not match 'ReturnByValue<OtherDerived>' against 'int'
+  237 |   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived>& func) {
+      |                                                 ^
+/opt/homebrew/include/eigen3/Eigen/src/Core/Matrix.h:261:59: note: candidate function not viable: no known conversion from 'int' to 'Matrix<float, 2, 2, 1>' for 1st argument
+  261 |   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE constexpr Matrix& operator=(Matrix&& other) noexcept(
+      |                                                           ^         ~~~~~~~~~~~~~~
+/opt/homebrew/include/eigen3/Eigen/src/Core/Matrix.h:404:29: note: candidate template ignored: could not match 'RotationBase<OtherDerived, ColsAtCompileTime>' against 'int'
+  404 |   EIGEN_DEVICE_FUNC Matrix& operator=(const RotationBase<OtherDerived, ColsAtCompileTime>& r);
+      |                             ^
+examples/dsl_product_2x2.cpp:8:11: error: no matching conversion for functional-style cast from 'int' to 'Eigen::Map<const Matrix<float, 2, 2, 1, 2, 2>>'
+    8 |     dst = Eigen::Map<const Dst>(src_ptr);
+      |           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+examples/dsl_product_2x2.cpp:46:7: note: in instantiation of function template specialization 'hw::LOAD<Eigen::Matrix<float, 2, 2, 1>, int>' requested here
+   46 |   hw::LOAD(a, 1);
+      |       ^
+/opt/homebrew/include/eigen3/Eigen/src/Core/Map.h:123:37: note: candidate constructor not viable: no known conversion from 'int' to 'PointerArgType' (aka 'const float *') for 1st argument
+  123 |   EIGEN_DEVICE_FUNC explicit inline Map(PointerArgType dataPtr, const StrideType& stride = StrideType())
+      |                                     ^   ~~~~~~~~~~~~~~~~~~~~~~
+/opt/homebrew/include/eigen3/Eigen/src/Core/Map.h:145:38: note: candidate constructor not viable: no known conversion from 'int' to 'const Map<const Matrix<float, 2, 2, 1>>' for 1st argument
+  145 |   EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
+      |   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~
+/opt/homebrew/include/eigen3/Eigen/src/Core/util/Macros.h:1167:34: note: expanded from macro 'EIGEN_INHERIT_ASSIGNMENT_OPERATORS'
+ 1167 |   EIGEN_DEFAULT_COPY_CONSTRUCTOR(Derived)
+      |   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~
+/opt/homebrew/include/eigen3/Eigen/src/Core/util/Macros.h:1158:65: note: expanded from macro 'EIGEN_DEFAULT_COPY_CONSTRUCTOR'
+ 1158 | #define EIGEN_DEFAULT_COPY_CONSTRUCTOR(CLASS) EIGEN_DEVICE_FUNC CLASS(const CLASS&) = default;
+      |                                                                 ^     ~~~~~~~~~~~~
+/opt/homebrew/include/eigen3/Eigen/src/Core/Map.h:132:28: note: candidate constructor not viable: requires at least 2 arguments, but 1 was provided
+  132 |   EIGEN_DEVICE_FUNC inline Map(PointerArgType dataPtr, Index size, const StrideType& stride = StrideType())
+      |                            ^   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/opt/homebrew/include/eigen3/Eigen/src/Core/Map.h:142:28: note: candidate constructor not viable: requires at least 3 arguments, but 1 was provided
+  142 |   EIGEN_DEVICE_FUNC inline Map(PointerArgType dataPtr, Index rows, Index cols, const StrideType& stride = StrideType())
+      |                            ^   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2 errors generated.

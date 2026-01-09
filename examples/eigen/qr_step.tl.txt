@@ -1,0 +1,19 @@
+target AppleM2 {
+    cores = 8;
+}
+
+type Matrix = Tensor<f32, {1024, 1024}, Global, RowMajor>;
+type Tile = Tensor<f32, {32, 32}, TileReg, Tiled(32x32)>;
+
+kernel QRStep(Matrix Q, Matrix R, Matrix A_next) {
+    Tile tQ;
+    Tile tR;
+    Tile tRes;
+
+    batch (i = 0 .. 1024 step 32) {
+        LOAD(tQ, Q[i]);
+        LOAD(tR, R[i]);
+        MMUL(tRes, tR, tQ);
+        STORE(A_next[i], tRes);
+    }
+}

@@ -1,0 +1,23 @@
+type EmbeddingTable = Tensor<f32, {4,4}, Global, RowMajor>;
+type LinearProj = Tensor<f32, {4,4}, TileReg, RowMajor>;
+type TokenVec = Tensor<f32, {4}, TileReg, RowMajor>;
+type LogitVec = Tensor<f32, {4}, TileReg, RowMajor>;
+type TokenIdx = Tensor<int32, {1}, TileReg, RowMajor>;
+
+kernel hf_infer(EmbeddingTable emb, LinearProj W) {
+  TokenVec token_vec;
+  LogitVec logits;
+  TokenIdx tok;
+
+  STORE(emb, 0.25);
+  STORE(W, 0.5);
+
+  batch (i = 0 .. 4 step 1) {
+    tok = i;
+    LOOKUP(token_vec, emb, tok);
+    MMUL(logits, W, token_vec);
+  }
+
+  SOFTMAX(logits);
+  REDUCE(logits);
+}

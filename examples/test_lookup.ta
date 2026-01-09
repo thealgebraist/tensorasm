@@ -1,0 +1,9 @@
+type Vec = Tensor<f32, {4}, TileReg, RowMajor>;
+type Table = Tensor<f32, {10,4}, Global, RowMajor>;
+type Idx = Tensor<int32, {1}, TileReg, RowMajor>;
+type Out = Tensor<f32, {4}, Global, RowMajor>;
+
+kernel test_lookup(Vec v, Table table, Idx idx, Out out) {
+  LOOKUP(v, table, idx);
+  STORE(out, v);
+}

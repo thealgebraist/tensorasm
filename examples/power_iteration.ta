@@ -1,0 +1,21 @@
+target AppleM2 {
+    cores = 8;
+}
+
+type Matrix = Tensor<f32, {1024, 1024}, Global, RowMajor>;
+type Vector = Tensor<f32, {1024}, Global, RowMajor>;
+type Tile = Tensor<f32, {32, 32}, TileReg, Tiled(32 x 32)>;
+type VectorTile = Tensor<f32, {32}, TileReg, RowMajor>;
+
+kernel PowerIteration(Matrix A, Vector v, Vector out) {
+    Tile tA;
+    VectorTile tv;
+    VectorTile tRes;
+
+    batch (i = 0 .. 1024 step 32) {
+        LOAD(tA, A[i]);
+        LOAD(tv, v[i]);
+        MMUL(tRes, tA, tv);
+        STORE(out[i], tRes);
+    }
+}

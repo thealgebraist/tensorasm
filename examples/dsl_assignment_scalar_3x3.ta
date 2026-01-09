@@ -1,0 +1,6 @@
+type M = Tensor<f32, {3,3}, Global, RowMajor>;
+
+kernel assign(M a) {
+  a = 5;
+  REDUCE(a);
+}

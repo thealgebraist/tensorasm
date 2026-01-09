@@ -1,0 +1,6 @@
+type V = Tensor<f32, {5}, Global, RowMajor>;
+
+kernel rvec(V x) {
+  LOAD(x, 2);
+  REDUCE(x);
+}

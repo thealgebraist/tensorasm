@@ -1,0 +1,20 @@
+type Acc = Tensor<f32, {2,2}, TileReg, RowMajor>;
+type A_Global = Tensor<f32, {2,2}, Global, RowMajor>;
+type B_Global = Tensor<f32, {2,2}, Global, RowMajor>;
+type C_Global = Tensor<f32, {2,2}, Global, RowMajor>;
+
+type A_Tile = Tensor<f32, {2,2}, TileReg, RowMajor>;
+type B_Tile = Tensor<f32, {2,2}, TileReg, RowMajor>;
+
+kernel bmm(Acc acc, A_Global ag, B_Global bg, C_Global cg) {
+  A_Tile at;
+  B_Tile bt;
+  acc = 0;
+  LOAD(at, ag);
+  LOAD(bt, bg);
+  batch(i = 0..3 step 1) {
+    MMUL(acc, at, bt);
+  }
+  STORE(cg, acc);
+  REDUCE(cg);
+}

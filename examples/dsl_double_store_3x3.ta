@@ -1,0 +1,21 @@
+type Acc = Tensor<f32, {3,3}, TileReg, RowMajor>;
+type A = Tensor<f32, {3,3}, Global, RowMajor>;
+type B = Tensor<f32, {3,3}, Global, RowMajor>;
+type Y = Tensor<f32, {3,3}, Global, RowMajor>;
+type Z = Tensor<f32, {3,3}, Global, RowMajor>;
+
+type ATile = Tensor<f32, {3,3}, TileReg, RowMajor>;
+type BTile = Tensor<f32, {3,3}, TileReg, RowMajor>;
+
+kernel dstore(Acc acc, A a, B b, Y y, Z z) {
+  ATile at;
+  BTile bt;
+  acc = 0;
+  LOAD(at, a);
+  LOAD(bt, b);
+  MMUL(acc, at, bt);
+  STORE(y, acc);
+  STORE(z, acc);
+  REDUCE(y);
+  REDUCE(z);
+}

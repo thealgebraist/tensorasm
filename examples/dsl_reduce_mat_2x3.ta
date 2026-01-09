@@ -1,0 +1,6 @@
+type M = Tensor<f32, {2,3}, Global, RowMajor>;
+
+kernel rmat(M a) {
+  LOAD(a, 4);
+  REDUCE(a);
+}
