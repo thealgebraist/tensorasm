@@ -1,0 +1,24 @@
+{
+  "input_dim": 1,
+  "hidden_dim": 16,
+  "output_dim": 16,
+  "activation": "relu",
+  "shapes": {
+    "W1": [
+      1,
+      16
+    ],
+    "b1": [
+      1,
+      16
+    ],
+    "W2": [
+      16,
+      16
+    ],
+    "b2": [
+      1,
+      16
+    ]
+  }
+}

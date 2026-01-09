@@ -1,0 +1,20 @@
+target AppleM2 {
+    cores = 8;
+}
+
+type Matrix4x4 = Tensor<f32, {4, 4}, Global, RowMajor>;
+type Vector4 = Tensor<f32, {4}, Global, RowMajor>;
+type MatTile = Tensor<f32, {4, 4}, TileReg, RowMajor>;
+type VecTile = Tensor<f32, {4}, TileReg, RowMajor>;
+
+kernel PowerIteration(Matrix4x4 A, Vector4 v, Vector4 out) {
+    MatTile tA;
+    VecTile tv;
+    VecTile tRes;
+    
+    LOAD(tA, A);
+    LOAD(tv, v);
+    tRes = 0;
+    MMUL(tRes, tA, tv);
+    STORE(out, tRes);
+}

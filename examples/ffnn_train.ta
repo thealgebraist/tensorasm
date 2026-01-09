@@ -1,0 +1,163 @@
+target AppleM2 {
+    cores = 8;
+}
+
+type InputMat = Tensor<f32, {1, 1}, Global, RowMajor>;
+type HiddenVec = Tensor<f32, {1, 16}, Global, RowMajor>;
+type OutputVec = Tensor<f32, {1, 16}, Global, RowMajor>;
+type W1Matrix = Tensor<f32, {1, 16}, Global, RowMajor>;
+type W2Matrix = Tensor<f32, {16, 16}, Global, RowMajor>;
+type HiddenVecT = Tensor<f32, {16, 1}, Global, ColMajor>;
+type InputMatT = Tensor<f32, {1, 1}, Global, RowMajor>;
+
+type InputTile = Tensor<f32, {1, 1}, TileReg, RowMajor>;
+type HiddenTile = Tensor<f32, {1, 16}, TileReg, RowMajor>;
+type OutputTile = Tensor<f32, {1, 16}, TileReg, RowMajor>;
+type W1Tile = Tensor<f32, {1, 16}, TileReg, RowMajor>;
+type W2Tile = Tensor<f32, {16, 16}, TileReg, RowMajor>;
+type HiddenTileT = Tensor<f32, {16, 1}, TileReg, ColMajor>;
+type InputTileT = Tensor<f32, {1, 1}, TileReg, RowMajor>;
+
+kernel ForwardPass(InputMat x, W1Matrix W1, HiddenVec b1, W2Matrix W2, OutputVec b2, HiddenVec z1_out, OutputVec out) {
+    InputTile tx;
+    W1Tile tW1;
+    HiddenTile tb1;
+    HiddenTile tz1;
+    W2Tile tW2;
+    OutputTile tb2;
+    OutputTile tout;
+    
+    LOAD(tx, x);
+    LOAD(tW1, W1);
+    LOAD(tb1, b1);
+    
+    tz1 = 0;
+    MMUL(tz1, tx, tW1);
+    tz1 = tz1 + tb1;
+    STORE(z1_out, tz1);
+    
+    LOAD(tW2, W2);
+    LOAD(tb2, b2);
+    
+    tout = 0;
+    MMUL(tout, tz1, tW2);
+    tout = tout + tb2;
+    
+    STORE(out, tout);
+}
+
+kernel ComputeOutputGradient(OutputVec pred, OutputVec y_true, OutputVec grad_out) {
+    OutputTile tpred;
+    OutputTile ttrue;
+    OutputTile tgrad;
+    
+    LOAD(tpred, pred);
+    LOAD(ttrue, y_true);
+    
+    tgrad = tpred - ttrue;
+    
+    STORE(grad_out, tgrad);
+}
+
+kernel BackwardHiddenLayer(OutputVec grad_output, W2Matrix W2, HiddenVec z1, HiddenVec grad_hidden) {
+    OutputTile tgrad_out;
+    W2Tile tW2;
+    W2Tile tW2T;
+    HiddenTile tz1;
+    HiddenTile tgrad_h;
+    
+    LOAD(tgrad_out, grad_output);
+    LOAD(tW2, W2);
+    TRANSPOSE(tW2T, tW2);
+    
+    tgrad_h = 0;
+    MMUL(tgrad_h, tgrad_out, tW2T);
+    
+    STORE(grad_hidden, tgrad_h);
+}
+
+kernel UpdateW2(W2Matrix W2, HiddenVec z1, OutputVec grad_output, W2Matrix W2_out, HiddenVecT z1_T_buf) {
+    HiddenTile tz1;
+    HiddenTileT tz1T;
+    OutputTile tgrad;
+    W2Tile tdW2;
+    W2Tile tW2;
+    
+    LOAD(tz1, z1);
+    TRANSPOSE(tz1T, tz1);
+    LOAD(tgrad, grad_output);
+    
+    tdW2 = 0;
+    MMUL(tdW2, tz1T, tgrad);
+    
+    LOAD(tW2, W2);
+    tW2 = tW2 - tdW2;
+    
+    STORE(W2_out, tW2);
+}
+
+kernel UpdateW1(W1Matrix W1, InputMat x, HiddenVec grad_hidden, W1Matrix W1_out, InputMatT x_T_buf) {
+    InputTile tx;
+    InputTileT txT;
+    HiddenTile tgrad_h;
+    W1Tile tdW1;
+    W1Tile tW1;
+    
+    LOAD(tx, x);
+    TRANSPOSE(txT, tx);
+    LOAD(tgrad_h, grad_hidden);
+    
+    tdW1 = 0;
+    MMUL(tdW1, txT, tgrad_h);
+    
+    LOAD(tW1, W1);
+    tW1 = tW1 - tdW1;
+    
+    STORE(W1_out, tW1);
+}
+
+kernel UpdateBias(OutputVec bias, OutputVec gradient, OutputVec bias_out) {
+    OutputTile tbias;
+    OutputTile tgrad;
+    
+    LOAD(tbias, bias);
+    LOAD(tgrad, gradient);
+    
+    tbias = tbias - tgrad;
+    
+    STORE(bias_out, tbias);
+}
+
+kernel LoadWeights(W1Matrix W1_file, HiddenVec b1_file, W2Matrix W2_file, OutputVec b2_file, W1Matrix W1, HiddenVec b1, W2Matrix W2, OutputVec b2) {
+    W1Tile tW1;
+    HiddenTile tb1;
+    W2Tile tW2;
+    OutputTile tb2;
+    
+    LOAD(tW1, W1_file);
+    LOAD(tb1, b1_file);
+    LOAD(tW2, W2_file);
+    LOAD(tb2, b2_file);
+    
+    STORE(W1, tW1);
+    STORE(b1, tb1);
+    STORE(W2, tW2);
+    STORE(b2, tb2);
+}
+
+kernel SaveWeights(W1Matrix W1, HiddenVec b1, W2Matrix W2, OutputVec b2, W1Matrix W1_file, HiddenVec b1_file, W2Matrix W2_file, OutputVec b2_file) {
+    W1Tile tW1;
+    HiddenTile tb1;
+    W2Tile tW2;
+    OutputTile tb2;
+    
+    LOAD(tW1, W1);
+    LOAD(tb1, b1);
+    LOAD(tW2, W2);
+    LOAD(tb2, b2);
+    
+    STORE(W1_file, tW1);
+    STORE(b1_file, tb1);
+    STORE(W2_file, tW2);
+    STORE(b2_file, tb2);
+}
