@@ -1,0 +1,21 @@
+type InputInt = Tensor<int32, {1}, Global, RowMajor>;
+type OutputVec = Tensor<f32, {768}, Global, RowMajor>;
+
+type W_TextEmbed = Tensor<f32, {81, 768}, Global, RowMajor>;
+
+type T_Hidden = Tensor<f32, {768}, TileReg, RowMajor>;
+type T_Idx = Tensor<int32, {1}, TileReg, RowMajor>;
+
+kernel text_encoder_lookup(
+    InputInt token_idx,
+    W_TextEmbed embed_w,
+    OutputVec output
+) {
+    T_Idx idx;
+    LOAD(idx, token_idx);
+    
+    T_Hidden h;
+    LOOKUP(h, embed_w, idx);
+    
+    STORE(output, h);
+}
