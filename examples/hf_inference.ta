@@ -1,23 +1,75 @@
-type EmbeddingTable = Tensor<f32, {4,4}, Global, RowMajor>;
-type LinearProj = Tensor<f32, {4,4}, TileReg, RowMajor>;
-type TokenVec = Tensor<f32, {4}, TileReg, RowMajor>;
-type LogitVec = Tensor<f32, {4}, TileReg, RowMajor>;
-type TokenIdx = Tensor<int32, {1}, TileReg, RowMajor>;
+target AppleM2 {
+    cores = 8;
+}
 
-kernel hf_infer(EmbeddingTable emb, LinearProj W) {
-  TokenVec token_vec;
-  LogitVec logits;
-  TokenIdx tok;
+type InputVec = Tensor<f32, {1, 16}, Global, RowMajor>;
+type OutputVec = Tensor<f32, {1, 16}, Global, RowMajor>;
+type WeightMatrix = Tensor<f32, {16, 16}, Global, RowMajor>;
+type BiasVec = Tensor<f32, {1, 16}, Global, RowMajor>;
 
-  STORE(emb, 0.25);
-  STORE(W, 0.5);
+type InputTile = Tensor<f32, {1, 16}, TileReg, RowMajor>;
+type OutputTile = Tensor<f32, {1, 16}, TileReg, RowMajor>;
+type WeightTile = Tensor<f32, {16, 16}, TileReg, RowMajor>;
+type BiasTile = Tensor<f32, {1, 16}, TileReg, RowMajor>;
 
-  batch (i = 0 .. 4 step 1) {
-    tok = i;
-    LOOKUP(token_vec, emb, tok);
-    MMUL(logits, W, token_vec);
-  }
+kernel AttentionQuery(InputVec x, WeightMatrix W, BiasVec b, OutputVec out) {
+    InputTile tx;
+    WeightTile tW;
+    BiasTile tb;
+    OutputTile tout;
+    
+    LOAD(tx, x);
+    LOAD(tW, W);
+    LOAD(tb, b);
+    
+    tout = 0;
+    MMUL(tout, tx, tW);
+    tout = tout + tb;
+    
+    STORE(out, tout);
+}
 
-  SOFTMAX(logits);
-  REDUCE(logits);
+kernel LinearLayer(InputVec x, WeightMatrix W, BiasVec b, OutputVec out) {
+    InputTile tx;
+    WeightTile tW;
+    BiasTile tb;
+    OutputTile tout;
+    
+    LOAD(tx, x);
+    LOAD(tW, W);
+    LOAD(tb, b);
+    
+    tout = 0;
+    MMUL(tout, tx, tW);
+    tout = tout + tb;
+    
+    STORE(out, tout);
+}
+
+kernel GELU(InputVec x, OutputVec out) {
+    InputTile tx;
+    
+    LOAD(tx, x);
+    ACT(tx, 1);
+    STORE(out, tx);
+}
+
+kernel RunInference(InputVec x, WeightMatrix W, BiasVec b, OutputVec out, OutputVec out_gelu) {
+    InputTile tx;
+    WeightTile tW;
+    BiasTile tb;
+    OutputTile tout;
+    
+    LOAD(tx, x);
+    LOAD(tW, W);
+    LOAD(tb, b);
+    
+    tout = 0;
+    MMUL(tout, tx, tW);
+    tout = tout + tb;
+    
+    STORE(out, tout);
+    
+    ACT(tout, 1);
+    STORE(out_gelu, tout);
 }
