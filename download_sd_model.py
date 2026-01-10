@@ -20,27 +20,30 @@ print(f"\nLoading: {model_id}")
 print("This may take a few minutes...")
 
 try:
-    # Load the pipeline
-    pipe = StableDiffusionPipeline.from_pretrained(
+    # Load only the UNet component (lighter than full pipeline)
+    from diffusers import UNet2DConditionModel
+    
+    print("Loading UNet model (main diffusion component)...")
+    unet = UNet2DConditionModel.from_pretrained(
         model_id,
-        torch_dtype=torch.float32,
-        safety_checker=None,
-        requires_safety_checker=False
+        subfolder="unet",
+        torch_dtype=torch.float32
     )
     
-    print("\n✓ Stable Diffusion 1.5 loaded successfully!")
+    print("Loading UNet model (main diffusion component)...")
+    unet = UNet2DConditionModel.from_pretrained(
+        model_id,
+        subfolder="unet",
+        torch_dtype=torch.float32
+    )
+    
+    print("\n✓ Stable Diffusion UNet loaded successfully!")
     
     # Count parameters
-    text_encoder_params = sum(p.numel() for p in pipe.text_encoder.parameters())
-    unet_params = sum(p.numel() for p in pipe.unet.parameters())
-    vae_params = sum(p.numel() for p in pipe.vae.parameters())
-    total_params = text_encoder_params + unet_params + vae_params
+    unet_params = sum(p.numel() for p in unet.parameters())
     
-    print(f"\nModel Components:")
-    print(f"  Text Encoder: {text_encoder_params:,} parameters")
-    print(f"  UNet: {unet_params:,} parameters")
-    print(f"  VAE: {vae_params:,} parameters")
-    print(f"  Total: {total_params:,} parameters")
+    print(f"\nUNet Model:")
+    print(f"  Parameters: {unet_params:,}")
     
     # Extract a small subset of weights from the UNet
     # Focus on the first cross-attention layer (text-to-image attention)
@@ -49,8 +52,7 @@ try:
     print("=" * 70)
     
     # Get first down block's cross-attention layer
-    # UNet structure: down_blocks[i].attentions[j].transformer_blocks[k].attn2
-    down_block = pipe.unet.down_blocks[0]
+    down_block = unet.down_blocks[1]  # Second down block has cross-attention
     
     # Find cross-attention layer
     if hasattr(down_block, 'attentions') and down_block.attentions is not None:
@@ -93,14 +95,11 @@ try:
         # Save config
         config = {
             "model_type": "stable-diffusion-v1-5",
-            "component": "unet.down_blocks[0].attentions[0].transformer_blocks[0].attn2",
+            "component": "unet.down_blocks[1].attentions[0].transformer_blocks[0].attn2",
             "layer": "cross_attention_query",
             "input_dim": 16,
             "output_dim": 16,
-            "total_params": int(total_params),
-            "text_encoder_params": int(text_encoder_params),
             "unet_params": int(unet_params),
-            "vae_params": int(vae_params),
             "shapes": {
                 "W": [16, 16],
                 "b": [16]
@@ -119,36 +118,8 @@ try:
         print(f"  Weight sample: {W[0, :3]}")
         print(f"  Bias sample: {b[:3]}")
         
-        # Also extract VAE decoder weights for image generation
-        print("\n" + "=" * 70)
-        print("Extracting VAE Decoder Weights")
-        print("=" * 70)
-        
-        # Get first conv layer from VAE decoder
-        vae_decoder_conv = pipe.vae.decoder.conv_in
-        
-        conv_weight = vae_decoder_conv.weight.data.cpu().numpy()  # Shape: (out_ch, in_ch, h, w)
-        conv_bias = vae_decoder_conv.bias.data.cpu().numpy() if vae_decoder_conv.bias is not None else None
-        
-        print(f"\nVAE Decoder First Conv:")
-        print(f"  Weight shape: {conv_weight.shape}")
-        print(f"  Bias shape: {conv_bias.shape if conv_bias is not None else 'None'}")
-        
-        # Take a smaller subset (e.g., 4 output channels, 4 input channels, 3x3 kernel)
-        conv_W = conv_weight[:4, :4, :3, :3].astype(np.float32)
-        conv_b = conv_bias[:4].astype(np.float32) if conv_bias is not None else np.zeros(4, dtype=np.float32)
-        
-        print(f"\nExtracted subset:")
-        print(f"  Conv W: {conv_W.shape}")
-        print(f"  Conv b: {conv_b.shape}")
-        
-        conv_W.tofile("weights/stable_diffusion/vae_conv_W.bin")
-        conv_b.tofile("weights/stable_diffusion/vae_conv_b.bin")
-        
-        print(f"  Saved VAE conv weights")
-        
         print("\n✓ Ready for DSL inference!")
-        print("  Extracted: Cross-attention and VAE decoder weights")
+        print("  Extracted: Cross-attention query projection from SD 1.5 UNet")
         print("  These are authentic Stable Diffusion 1.5 weights")
     
     else:

@@ -1,0 +1,17 @@
+{
+  "model_type": "stable-diffusion-v1-5",
+  "component": "unet.down_blocks[1].attentions[0].transformer_blocks[0].attn2",
+  "layer": "cross_attention_query",
+  "input_dim": 16,
+  "output_dim": 16,
+  "unet_params": 859520964,
+  "shapes": {
+    "W": [
+      16,
+      16
+    ],
+    "b": [
+      16
+    ]
+  }
+}
