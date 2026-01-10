@@ -1,0 +1,10 @@
+/home/codespace/.python/current/lib/python3.12/site-packages/torch/amp/autocast_mode.py:270: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+  warnings.warn(
+======================================================================
+Downloading Stable Diffusion 1.5
+======================================================================
+
+Loading: runwayml/stable-diffusion-v1-5
+This may take a few minutes...
+Fetching 13 files:   0%|          | 0/13 [00:00<?, ?it/s]Fetching 13 files:  38%|███▊      | 5/13 [00:22<00:35,  4.48s/it]Fetching 13 files:  85%|████████▍ | 11/13 [00:57<00:10,  5.39s/it]Fetching 13 files: 100%|██████████| 13/13 [00:57<00:00,  4.46s/it]
+Loading pipeline components...:   0%|          | 0/6 [00:00<?, ?it/s]Loading pipeline components...:  33%|███▎      | 2/6 [00:00<00:00,  9.39it/s]
