@@ -5,7 +5,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 
 ---
 
-## Phase 1: Core Intrinsics & Operations (Tasks 1-8)
+## Phase 1: Core Intrinsics & Operations (Tasks 1-9)
 
 ### Task 1: Implement 2D Convolution Intrinsic
 - **Priority**: Critical
@@ -52,7 +52,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: None
 - **Estimated Effort**: 3 days
 
-### Task 4: Add LayerNorm Intrinsic
+### Task 5: Add LayerNorm Intrinsic
 - **Priority**: High
 - **Description**: Implement LAYER_NORM for transformer blocks
 - **Current Gap**: Cross-attention uses LayerNorm
@@ -62,7 +62,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: None
 - **Estimated Effort**: 1 week
 
-### Task 5: Implement Batched Matrix Multiplication
+### Task 6: Implement Batched Matrix Multiplication
 - **Priority**: Critical
 - **Description**: Extend MMUL to support batched operations
 - **Current Gap**: Attention requires batch x heads x seq x dim operations
@@ -73,7 +73,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: None
 - **Estimated Effort**: 1 week
 
-### Task 6: Add Upsampling/Interpolation Intrinsic
+### Task 7: Add Upsampling/Interpolation Intrinsic
 - **Priority**: High
 - **Description**: Implement UPSAMPLE for spatial upsampling
 - **Current Gap**: UNet decoder needs 2x upsampling
@@ -84,7 +84,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: Task 1
 - **Estimated Effort**: 1 week
 
-### Task 7: Implement Concatenation Intrinsic
+### Task 8: Implement Concatenation Intrinsic
 - **Priority**: High
 - **Description**: Add CONCAT for tensor concatenation
 - **Current Gap**: UNet skip connections need channel concatenation
@@ -95,7 +95,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: None
 - **Estimated Effort**: 4 days
 
-### Task 8: Add Slicing/Indexing Operations
+### Task 9: Add Slicing/Indexing Operations
 - **Priority**: Medium
 - **Description**: Implement tensor slicing for skip connections
 - **Current Gap**: Need to extract/combine tensor regions
@@ -107,9 +107,9 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 
 ---
 
-## Phase 2: Advanced Attention Mechanisms (Tasks 9-12)
+## Phase 2: Advanced Attention Mechanisms (Tasks 10-13)
 
-### Task 9: Implement Multi-Head Attention Kernel
+### Task 10: Implement Multi-Head Attention Kernel
 - **Priority**: Critical
 - **Description**: Build complete multi-head attention in DSL
 - **Current Gap**: Only have single query projection
@@ -118,10 +118,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Scaled dot-product attention
   - Output projection
   - Support 8 heads at 64-dim each
-- **Dependencies**: Tasks 5, 8
+- **Dependencies**: Tasks 6, 9
 - **Estimated Effort**: 2 weeks
 
-### Task 10: Add Cross-Attention Kernel
+### Task 11: Add Cross-Attention Kernel
 - **Priority**: Critical
 - **Description**: Implement cross-attention between image and text
 - **Current Gap**: SD needs image x text cross-attention
@@ -129,10 +129,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Separate Q (from image) and K,V (from text)
   - Proper masking support
   - Integration with transformer blocks
-- **Dependencies**: Task 9
+- **Dependencies**: Task 10
 - **Estimated Effort**: 1.5 weeks
 
-### Task 11: Implement Self-Attention Kernel
+### Task 12: Implement Self-Attention Kernel
 - **Priority**: High
 - **Description**: Self-attention for spatial features
 - **Current Gap**: UNet transformer blocks use self-attention
@@ -140,10 +140,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Q, K, V from same input
   - Position encoding support
   - Efficient computation for 64x64 spatial resolution
-- **Dependencies**: Task 9
+- **Dependencies**: Task 10
 - **Estimated Effort**: 1 week
 
-### Task 12: Optimize Attention Memory Layout
+### Task 13: Optimize Attention Memory Layout
 - **Priority**: Medium
 - **Description**: Implement efficient memory layout for attention
 - **Current Gap**: Attention has complex memory access patterns
@@ -151,14 +151,14 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Minimize cache misses
   - Support tiled computation
   - Fused kernels where possible
-- **Dependencies**: Tasks 9-11
+- **Dependencies**: Tasks 10-12
 - **Estimated Effort**: 2 weeks
 
 ---
 
-## Phase 3: Model Architecture Support (Tasks 13-18)
+## Phase 3: Model Architecture Support (Tasks 14-19)
 
-### Task 13: Implement ResNet Block Kernel
+### Task 14: Implement ResNet Block Kernel
 - **Priority**: Critical
 - **Description**: Build complete ResNet block used in SD UNet
 - **Current Gap**: UNet heavily uses ResNet blocks
@@ -166,10 +166,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Two conv layers with GroupNorm and SiLU
   - Skip connection with optional projection
   - Time embedding injection
-- **Dependencies**: Tasks 1-3
+- **Dependencies**: Tasks 1-4
 - **Estimated Effort**: 2 weeks
 
-### Task 14: Build Transformer Block Kernel
+### Task 15: Build Transformer Block Kernel
 - **Priority**: Critical
 - **Description**: Complete transformer block with self and cross-attention
 - **Current Gap**: Need full transformer for SD UNet
@@ -177,10 +177,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Self-attention + cross-attention + FFN
   - Layer norms and residual connections
   - Supports both spatial and sequence inputs
-- **Dependencies**: Tasks 4, 9-11
+- **Dependencies**: Tasks 5, 10-12
 - **Estimated Effort**: 2.5 weeks
 
-### Task 15: Implement Downsampling Block
+### Task 16: Implement Downsampling Block
 - **Priority**: High
 - **Description**: UNet encoder downsampling (conv stride=2 or pooling)
 - **Current Gap**: Need to reduce spatial resolution
@@ -191,7 +191,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: Task 1
 - **Estimated Effort**: 1 week
 
-### Task 16: Implement Upsampling Block
+### Task 17: Implement Upsampling Block
 - **Priority**: High
 - **Description**: UNet decoder upsampling with skip connections
 - **Current Gap**: Need to increase spatial resolution
@@ -199,10 +199,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - 2x spatial upsampling
   - Concatenate skip connections
   - Conv layers after upsampling
-- **Dependencies**: Tasks 6-7
+- **Dependencies**: Tasks 7-8
 - **Estimated Effort**: 1.5 weeks
 
-### Task 17: Add Time Embedding Support
+### Task 18: Add Time Embedding Support
 - **Priority**: Critical
 - **Description**: Implement sinusoidal time embeddings and injection
 - **Current Gap**: SD diffusion needs timestep conditioning
@@ -213,7 +213,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: None
 - **Estimated Effort**: 1 week
 
-### Task 18: Build VAE Decoder Architecture
+### Task 19: Build VAE Decoder Architecture
 - **Priority**: Critical
 - **Description**: Implement VAE decoder for latent->image
 - **Current Gap**: Need to decode 4-channel latents to RGB
@@ -221,14 +221,14 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - 4x upsampling path (4->8->16->32->64->512)
   - ResNet blocks with attention at 32x32
   - Final conv to RGB output
-- **Dependencies**: Tasks 1-3, 6, 15-16
+- **Dependencies**: Tasks 1-4, 7, 16-17
 - **Estimated Effort**: 3 weeks
 
 ---
 
-## Phase 4: Memory & Scheduling (Tasks 19-24)
+## Phase 4: Memory & Scheduling (Tasks 20-25)
 
-### Task 19: Implement Dynamic Tensor Allocation
+### Task 20: Implement Dynamic Tensor Allocation
 - **Priority**: High
 - **Description**: Support runtime tensor creation based on config
 - **Current Gap**: All tensors currently static
@@ -239,7 +239,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: None
 - **Estimated Effort**: 2 weeks
 
-### Task 20: Add Memory Pool Management
+### Task 21: Add Memory Pool Management
 - **Priority**: Medium
 - **Description**: Efficient memory reuse across operations
 - **Current Gap**: Each kernel allocates independently
@@ -247,10 +247,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Analyze tensor lifetimes
   - Reuse memory for intermediate tensors
   - Reduce peak memory usage by 50%
-- **Dependencies**: Task 19
+- **Dependencies**: Task 20
 - **Estimated Effort**: 2 weeks
 
-### Task 21: Implement Computation Graph
+### Task 22: Implement Computation Graph
 - **Priority**: High
 - **Description**: Build dependency graph for kernel execution
 - **Current Gap**: Sequential execution only
@@ -261,7 +261,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: None
 - **Estimated Effort**: 2.5 weeks
 
-### Task 22: Add Operator Fusion
+### Task 23: Add Operator Fusion
 - **Priority**: Medium
 - **Description**: Fuse compatible operations (conv+norm+act)
 - **Current Gap**: Each operation is separate kernel
@@ -269,10 +269,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Detect fusable patterns
   - Generate fused kernels
   - 20-30% speedup on common patterns
-- **Dependencies**: Task 21
+- **Dependencies**: Task 22
 - **Estimated Effort**: 3 weeks
 
-### Task 23: Implement Gradient Checkpointing
+### Task 24: Implement Gradient Checkpointing
 - **Priority**: Low
 - **Description**: Trade compute for memory in large models
 - **Current Gap**: May need for 512x512 inference
@@ -280,10 +280,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Selective intermediate tensor storage
   - Recompute on demand
   - Configurable checkpoint frequency
-- **Dependencies**: Tasks 20-21
+- **Dependencies**: Tasks 21-22
 - **Estimated Effort**: 2 weeks
 
-### Task 24: Add Streaming Execution
+### Task 25: Add Streaming Execution
 - **Priority**: Medium
 - **Description**: Pipeline execution for better throughput
 - **Current Gap**: Batch size 1 only, synchronous
@@ -291,14 +291,14 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Overlap data transfer and compute
   - Support mini-batching
   - Async kernel execution
-- **Dependencies**: Task 21
+- **Dependencies**: Task 22
 - **Estimated Effort**: 2 weeks
 
 ---
 
-## Phase 5: Complete Model Integration (Tasks 25-28)
+## Phase 5: Complete Model Integration (Tasks 26-29)
 
-### Task 25: Integrate CLIP Text Encoder
+### Task 26: Integrate CLIP Text Encoder
 - **Priority**: Critical
 - **Description**: Load and run CLIP for text embeddings
 - **Current Gap**: Need to encode prompts
@@ -306,10 +306,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Tokenizer integration
   - CLIP transformer in DSL (12 layers)
   - Output 77x768 embeddings
-- **Dependencies**: Tasks 4, 9, 11
+- **Dependencies**: Tasks 5, 10, 12
 - **Estimated Effort**: 3 weeks
 
-### Task 26: Build Complete UNet Pipeline
+### Task 27: Build Complete UNet Pipeline
 - **Priority**: Critical
 - **Description**: Assemble full UNet with all components
 - **Current Gap**: Only have single attention layer
@@ -318,10 +318,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Cross-attention at each resolution
   - Time embedding throughout
   - 320/640/1280 channel progression
-- **Dependencies**: Tasks 13-17
+- **Dependencies**: Tasks 14-18
 - **Estimated Effort**: 4 weeks
 
-### Task 27: Implement Noise Scheduler
+### Task 28: Implement Noise Scheduler
 - **Priority**: Critical
 - **Description**: DDPM/DDIM scheduling for diffusion steps
 - **Current Gap**: No diffusion sampling
@@ -332,7 +332,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: None
 - **Estimated Effort**: 1.5 weeks
 
-### Task 28: Integrate VAE Encoder
+### Task 29: Integrate VAE Encoder
 - **Priority**: Medium
 - **Description**: Encode images to latent space (for img2img)
 - **Current Gap**: Only have decoder
@@ -340,14 +340,14 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - RGB -> 4-channel latent encoding
   - Inverse of decoder architecture
   - KL divergence sampling
-- **Dependencies**: Task 18
+- **Dependencies**: Task 19
 - **Estimated Effort**: 2 weeks
 
 ---
 
-## Phase 6: Optimization & Production (Tasks 29-32)
+## Phase 6: Optimization & Production (Tasks 30-33)
 
-### Task 29: Implement FP16/BF16 Support
+### Task 30: Implement FP16/BF16 Support
 - **Priority**: High
 - **Description**: Mixed precision for 2x speedup
 - **Current Gap**: FP32 only
@@ -358,7 +358,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: None
 - **Estimated Effort**: 2 weeks
 
-### Task 30: Add Quantization (INT8)
+### Task 31: Add Quantization (INT8)
 - **Priority**: Medium
 - **Description**: 8-bit quantization for weights
 - **Current Gap**: FP32 weights require 3.4GB
@@ -367,10 +367,10 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
   - Calibration on sample data
   - <5% quality degradation
   - 4x memory reduction
-- **Dependencies**: Task 29
+- **Dependencies**: Task 30
 - **Estimated Effort**: 3 weeks
 
-### Task 31: Platform-Specific Optimizations
+### Task 32: Platform-Specific Optimizations
 - **Priority**: High
 - **Description**: Target-specific code generation
 - **Current Gap**: Generic Eigen code
@@ -382,7 +382,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - **Dependencies**: All previous tasks
 - **Estimated Effort**: 6 weeks
 
-### Task 32: Build End-to-End Pipeline
+### Task 33: Build End-to-End Pipeline
 - **Priority**: Critical
 - **Description**: Complete text-to-image generation
 - **Current Gap**: Only component tests
@@ -398,7 +398,7 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 
 ## Summary Statistics
 
-- **Total Tasks**: 32
+- **Total Tasks**: 33
 - **Critical Priority**: 11 tasks
 - **High Priority**: 10 tasks  
 - **Medium Priority**: 9 tasks
@@ -442,5 +442,5 @@ Expand the TensorASM DSL to support complete Stable Diffusion 1.5 inference, fro
 - ✓ Match visual quality of HuggingFace Diffusers
 - ✓ <30 second generation time on M2 MacBook
 - ✓ <4GB memory usage
-- ✓ All 32 tasks validated with unit tests
+- ✓ All 33 tasks validated with unit tests
 - ✓ Full SD 1.5 checkpoint loadable from .safetensors

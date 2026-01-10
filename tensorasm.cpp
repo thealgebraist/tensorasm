@@ -96,7 +96,10 @@ struct Program : Node {
 // --- Lexer & Parser ---
 
 enum class TokenType { 
-    Target, Type, Kernel, Batch, Tensor, F32, F16, BF16, Int8, Int32, Global, L1, Shared, TileReg, MMUL, LOAD, STORE, REDUCE, MADD, SOFTMAX, LOOKUP, SYNC, EXP, SQRT, TRANSPOSE, ACT, Const, Ident, Number,
+    Target, Type, Kernel, Batch, Tensor, F32, F16, BF16, Int8, Int32, Global, L1, Shared, TileReg,
+    MMUL, LOAD, STORE, REDUCE, MADD, SOFTMAX, LOOKUP, SYNC, EXP, SQRT, TRANSPOSE, ACT,
+    GROUP_NORM, CONCAT, UPSAMPLE, CONV2D, FFT, IFFT,
+    Const, Ident, Number,
     Equal, Semicolon, LParen, RParen, LBrace, RBrace, LAngle, RAngle, Comma, DotDot, Step, LBracket, RBracket, Plus, Minus, Star, Slash, Eof
 };
 
@@ -147,6 +150,12 @@ public:
                 else if (v == "SQRT") tokens.push_back({TokenType::SQRT, v, line});
                 else if (v == "TRANSPOSE") tokens.push_back({TokenType::TRANSPOSE, v, line});
                 else if (v == "ACT") tokens.push_back({TokenType::ACT, v, line});
+                else if (v == "GROUP_NORM") tokens.push_back({TokenType::GROUP_NORM, v, line});
+                else if (v == "CONCAT") tokens.push_back({TokenType::CONCAT, v, line});
+                else if (v == "UPSAMPLE") tokens.push_back({TokenType::UPSAMPLE, v, line});
+                else if (v == "CONV2D") tokens.push_back({TokenType::CONV2D, v, line});
+                else if (v == "FFT") tokens.push_back({TokenType::FFT, v, line});
+                else if (v == "IFFT") tokens.push_back({TokenType::IFFT, v, line});
                 else if (v == "const") tokens.push_back({TokenType::Const, v, line});
                 else tokens.push_back({TokenType::Ident, v, line});
             } else {
@@ -166,6 +175,20 @@ public:
                 else if (c == '-') tokens.push_back({TokenType::Minus, "-", line});
                 else if (c == '*') tokens.push_back({TokenType::Star, "*", line});
                 else if (c == '.' && pos < src.size() && src[pos] == '.') { pos++; tokens.push_back({TokenType::DotDot, "..", line}); }
+            }
+            else if (i->op == "CONV2D") {
+                // Expect: out, in, weight, bias, stride, pad
+                if (i->args.size() < 6) throw std::runtime_error("CONV2D requires 6 arguments");
+                require_tensor(i->args[0].get(), "CONV2D"); // out
+                require_tensor(i->args[1].get(), "CONV2D"); // in
+                require_tensor(i->args[2].get(), "CONV2D"); // weight
+                require_tensor(i->args[3].get(), "CONV2D"); // bias
+                // stride, pad: should be numbers, skip for now
+            }
+            else if (i->op == "FFT" || i->op == "IFFT") {
+                if (i->args.size() != 2) throw std::runtime_error(i->op + " requires 2 arguments (out, in)");
+                require_tensor(i->args[0].get(), i->op);
+                require_tensor(i->args[1].get(), i->op);
             }
         }
         tokens.push_back({TokenType::Eof, "$", line});
@@ -201,6 +224,12 @@ std::string token_type_to_string(TokenType t) {
         case TokenType::SQRT: return "SQRT";
         case TokenType::TRANSPOSE: return "TRANSPOSE";
         case TokenType::ACT: return "ACT";
+        case TokenType::GROUP_NORM: return "GROUP_NORM";
+        case TokenType::CONCAT: return "CONCAT";
+        case TokenType::UPSAMPLE: return "UPSAMPLE";
+        case TokenType::CONV2D: return "CONV2D";
+        case TokenType::FFT: return "FFT";
+        case TokenType::IFFT: return "IFFT";
         case TokenType::Const: return "const";
         case TokenType::Ident: return "identifier";
         case TokenType::Number: return "number";
@@ -339,7 +368,9 @@ class Parser {
             return std::make_unique<SyncStmt>(name);
         } else if (curr().type == TokenType::MMUL || curr().type == TokenType::LOAD || curr().type == TokenType::STORE || curr().type == TokenType::REDUCE || 
                    curr().type == TokenType::MADD || curr().type == TokenType::SOFTMAX || curr().type == TokenType::LOOKUP ||
-                   curr().type == TokenType::EXP || curr().type == TokenType::SQRT || curr().type == TokenType::TRANSPOSE || curr().type == TokenType::ACT) {
+                   curr().type == TokenType::EXP || curr().type == TokenType::SQRT || curr().type == TokenType::TRANSPOSE || curr().type == TokenType::ACT ||
+                   curr().type == TokenType::GROUP_NORM || curr().type == TokenType::CONCAT || curr().type == TokenType::UPSAMPLE ||
+                   curr().type == TokenType::CONV2D || curr().type == TokenType::FFT || curr().type == TokenType::IFFT) {
             auto op = match(curr().type).val; match(TokenType::LParen);
             std::vector<std::unique_ptr<Expression>> args;
             if (curr().type != TokenType::RParen) {
@@ -853,6 +884,70 @@ public:
         std::cout << "    } else {\n";
         std::cout << "      std::cerr << \"Warning: Could not load \" << path << \", using random/zero values.\" << std::endl;\n";
         std::cout << "    }\n";
+        std::cout << "  }\n";
+        std::cout << "  template<typename Out, typename In, typename Gamma, typename Beta>\n";
+        std::cout << "  void GROUP_NORM(Out& out, const In& in, const Gamma& gamma, const Beta& beta, int num_groups, float eps) {\n";
+        std::cout << "    int C = in.rows();\n";
+        std::cout << "    int S = in.cols();\n";
+        std::cout << "    int gsize = C / num_groups;\n";
+        std::cout << "    out = in;\n";
+        std::cout << "    for (int g = 0; g < num_groups; ++g) {\n";
+        std::cout << "      int start = g * gsize;\n";
+        std::cout << "      int rows = gsize;\n";
+        std::cout << "      auto block = in.block(start, 0, rows, S);\n";
+        std::cout << "      Eigen::RowVectorXf mean = block.colwise().mean();\n";
+        std::cout << "      Eigen::RowVectorXf var = ((block.colwise() - mean).array().square().colwise().sum() / float(rows)).matrix();\n";
+        std::cout << "      for (int r = 0; r < rows; ++r) {\n";
+        std::cout << "        int idx = start + r;\n";
+        std::cout << "        out.row(idx) = ((block.row(r).array() - mean.array()) / (var.array() + eps).sqrt()).matrix();\n";
+        std::cout << "        out.row(idx) = out.row(idx).array() * gamma.row(idx).array() + beta.row(idx).array();\n";
+        std::cout << "      }\n";
+        std::cout << "    }\n";
+        std::cout << "  }\n";
+
+        std::cout << "  template<typename Out, typename A, typename B>\n";
+        std::cout << "  void CONCAT(Out& out, const A& a, const B& b, int axis) {\n";
+        std::cout << "    if (axis == 0) {\n";
+        std::cout << "      out.topRows(a.rows()) = a;\n";
+        std::cout << "      out.bottomRows(b.rows()) = b;\n";
+        std::cout << "    } else {\n";
+        std::cout << "      out.leftCols(a.cols()) = a;\n";
+        std::cout << "      out.rightCols(b.cols()) = b;\n";
+        std::cout << "    }\n";
+        std::cout << "  }\n";
+
+        std::cout << "  template<typename Out, typename In>\n";
+        std::cout << "  void UPSAMPLE(Out& out, const In& in, int scale, int mode) {\n";
+        std::cout << "    // Nearest-neighbor upsample: replicate each column 'scale*scale' times\n";
+        std::cout << "    int C = in.rows();\n";
+        std::cout << "    int S = in.cols();\n";
+        std::cout << "    int outS = S * scale * scale;\n";
+        std::cout << "    out.setZero();\n";
+        std::cout << "    for (int s = 0; s < S; ++s) {\n";
+        std::cout << "      for (int rep = 0; rep < scale*scale; ++rep) {\n";
+        std::cout << "        int dst = s * (scale*scale) + rep;\n";
+        std::cout << "        out.col(dst) = in.col(s);\n";
+        std::cout << "      }\n";
+        std::cout << "    }\n";
+        std::cout << "  }\n";
+
+        std::cout << "  template<typename Out, typename In, typename W, typename B>\n";
+        std::cout << "  void CONV2D(Out& out, const In& in, const W& weight, const B& bias, int stride, int pad) {\n";
+        std::cout << "    // Simple im2col-style convolution assuming 'in' is C x (H*W) and weight is Cout x (C*k*k)\n";
+        std::cout << "    // out will be Cout x (Hout*Wout) where Hout*Wout = in.cols() / 1 (caller must shape appropriately)\n";
+        std::cout << "    out.noalias() = weight * in;\n";
+        std::cout << "    if constexpr (!std::is_arithmetic_v<B>) out.colwise() += bias.col(0); else out.array() += bias;\n";
+        std::cout << "  }\n";
+
+        std::cout << "  template<typename Out, typename In>\n";
+        std::cout << "  void FFT(Out& out, const In& in) {\n";
+        std::cout << "    // Placeholder FFT: use Eigen's FFT module or link to FFTW for real implementation\n";
+        std::cout << "    out = in; // identity fallback\n";
+        std::cout << "  }\n";
+
+        std::cout << "  template<typename Out, typename In>\n";
+        std::cout << "  void IFFT(Out& out, const In& in) {\n";
+        std::cout << "    out = in; // identity fallback\n";
         std::cout << "  }\n";
         
         std::cout << "  void SYNC(const std::string& name) {\n";

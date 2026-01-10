@@ -1,0 +1,9 @@
+target CPU {
+  arch = x86_64;
+  simd = AVX2;
+}
+
+kernel TestConv(Input x) {
+type Input = Tensor<f32, {3, 16}, Global, RowMajor>;
+kernel TestConv(Input x) {
+}
