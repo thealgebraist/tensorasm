@@ -1,0 +1,40 @@
+type InputVec = Tensor<f32, {768}, Global, RowMajor>;
+type OutputVec = Tensor<f32, {768}, Global, RowMajor>;
+type InputInt = Tensor<int32, {1}, Global, RowMajor>;
+
+type W_TextEmbed = Tensor<f32, {81, 768}, Global, RowMajor>;
+type W_FF1 = Tensor<f32, {768, 768}, Global, RowMajor>;
+type B_FF1 = Tensor<f32, {768}, Global, RowMajor>;
+
+type T_Hidden = Tensor<f32, {768}, TileReg, RowMajor>;
+type T_Weight = Tensor<f32, {768, 768}, TileReg, RowMajor>;
+type T_Bias = Tensor<f32, {768}, TileReg, RowMajor>;
+type T_Idx = Tensor<int32, {1}, TileReg, RowMajor>;
+
+kernel text_encoder_simple(
+    InputInt token_idx,
+    W_TextEmbed embed_w,
+    W_FF1 ff1_w,
+    B_FF1 ff1_b,
+    OutputVec output
+) {
+    T_Idx idx;
+    LOAD(idx, token_idx);
+    
+    T_Hidden h;
+    LOOKUP(h, embed_w, idx);
+    
+    T_Weight w1;
+    LOAD(w1, ff1_w);
+    
+    T_Bias b1;
+    LOAD(b1, ff1_b);
+    
+    T_Hidden ff1_out;
+    ff1_out = 0;
+    MMUL(ff1_out, h, w1);
+    ff1_out = ff1_out + b1;
+    ACT(ff1_out, ff1_out, 0);
+    
+    STORE(output, ff1_out);
+}

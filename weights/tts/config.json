@@ -1,0 +1,14 @@
+{
+  "model_type": "speecht5_tts",
+  "vocab_size": 81,
+  "hidden_size": 768,
+  "encoder_layers": 12,
+  "decoder_layers": 6,
+  "encoder_attention_heads": 12,
+  "decoder_attention_heads": 12,
+  "encoder_ffn_dim": 3072,
+  "decoder_ffn_dim": 3072,
+  "num_mel_bins": 80,
+  "max_text_positions": 600,
+  "max_speech_positions": 1876
+}

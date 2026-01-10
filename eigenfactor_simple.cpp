@@ -116,13 +116,6 @@ int main() {
   Vector4& out = *out_ptr;
   hw::FILE_LOAD(out, "weights/out.bin");
   PowerIteration(A, v, out);
-  
-  // Save output
-  std::ofstream fout("weights/out.bin", std::ios::binary);
-  fout.write(reinterpret_cast<const char*>(out.data()), out.size() * sizeof(float));
-  fout.close();
-  
   std::cout << "Kernel execution successful." << std::endl;
-  std::cout << "Result: [" << out(0) << ", " << out(1) << ", " << out(2) << ", " << out(3) << "]" << std::endl;
   return 0;
 }

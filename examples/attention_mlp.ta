@@ -1,0 +1,47 @@
+target CPU {
+  arch = x86_64;
+  simd = AVX2;
+}
+
+type QKV = Tensor<f32, {16, 16}, Global, RowMajor>;
+type Out = Tensor<f32, {16, 16}, TileReg, RowMajor>;
+type Proj = Tensor<f32, {16, 16}, Global, RowMajor>;
+type Bias = Tensor<f32, {16}, Global, RowMajor>;
+type Vec = Tensor<f32, {16}, TileReg, RowMajor>;
+
+type AttnWeights = Tensor<f32, {16, 16}, TileReg, RowMajor>;
+type Value = Tensor<f32, {16, 16}, TileReg, RowMajor>;
+
+type MLPW1 = Tensor<f32, {16, 16}, Global, RowMajor>;
+type MLPB1 = Tensor<f32, {16}, Global, RowMajor>;
+type MLPW2 = Tensor<f32, {16, 16}, Global, RowMajor>;
+type MLPB2 = Tensor<f32, {16}, Global, RowMajor>;
+
+type MLPHidden = Tensor<f32, {16}, TileReg, RowMajor>;
+
+type Gamma = Tensor<f32, {16}, Global, RowMajor>;
+type Beta = Tensor<f32, {16}, Global, RowMajor>;
+
+// Multi-Head Attention (single head for demo)
+kernel Attention(QKV q, QKV k, QKV v, Proj proj, Bias pbias, Out out) {
+  AttnWeights attn;
+  Value val;
+  // attn = q @ k^T
+  MMUL(attn, q, k);
+  SOFTMAX(attn);
+  // val = attn @ v
+  MMUL(val, attn, v);
+  // out = proj @ val + pbias
+  MMUL(out, proj, val);
+  out = out.array().colwise() + pbias.array();
+}
+
+// MLP kernel: out = W2 * ACT(W1*x + b1) + b2
+kernel MLP(Vec x, MLPW1 w1, MLPB1 b1, MLPW2 w2, MLPB2 b2, Vec out) {
+  MLPHidden h;
+  MMUL(h, w1, x);
+  h = h.array() + b1.array();
+  ACT(h, 1); // GELU
+  MMUL(out, w2, h);
+  out = out.array() + b2.array();
+}

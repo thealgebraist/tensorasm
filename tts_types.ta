@@ -1,0 +1,60 @@
+// TTS Model: speecht5_tts
+// Generated from config.json
+
+const VOCAB_SIZE = 81;
+const HIDDEN_SIZE = 768;
+const ENCODER_LAYERS = 12;
+const DECODER_LAYERS = 6;
+const ENCODER_HEADS = 12;
+const DECODER_HEADS = 12;
+const D_HEAD_ENC = 64;
+const D_HEAD_DEC = 64;
+const ENCODER_FFN = 3072;
+const DECODER_FFN = 3072;
+const MEL_BINS = 80;
+const MAX_TEXT_LEN = 600;
+const MAX_SPEECH_LEN = 1876;
+
+// ======== Encoder Weights (Global Memory) ========
+
+// Text Embedding
+type W_TextEmbed = Tensor<f32, {VOCAB_SIZE, HIDDEN_SIZE}, Global, RowMajor>;
+type W_PosEmbed = Tensor<f32, {MAX_TEXT_LEN, HIDDEN_SIZE}, Global, RowMajor>;
+
+// Encoder Layer Weights
+type W_EncQ = Tensor<f32, {HIDDEN_SIZE, HIDDEN_SIZE}, Global, RowMajor>;
+type W_EncK = Tensor<f32, {HIDDEN_SIZE, HIDDEN_SIZE}, Global, RowMajor>;
+type W_EncV = Tensor<f32, {HIDDEN_SIZE, HIDDEN_SIZE}, Global, RowMajor>;
+type W_EncAttnOut = Tensor<f32, {HIDDEN_SIZE, HIDDEN_SIZE}, Global, RowMajor>;
+type W_EncFF1 = Tensor<f32, {HIDDEN_SIZE, ENCODER_FFN}, Global, RowMajor>;
+type W_EncFF2 = Tensor<f32, {ENCODER_FFN, HIDDEN_SIZE}, Global, RowMajor>;
+type B_EncQ = Tensor<f32, {HIDDEN_SIZE}, Global, RowMajor>;
+type B_EncK = Tensor<f32, {HIDDEN_SIZE}, Global, RowMajor>;
+type B_EncV = Tensor<f32, {HIDDEN_SIZE}, Global, RowMajor>;
+
+// ======== Decoder Weights (Global Memory) ========
+
+// Decoder Layer Weights
+type W_DecQ = Tensor<f32, {HIDDEN_SIZE, HIDDEN_SIZE}, Global, RowMajor>;
+type W_DecK = Tensor<f32, {HIDDEN_SIZE, HIDDEN_SIZE}, Global, RowMajor>;
+type W_DecV = Tensor<f32, {HIDDEN_SIZE, HIDDEN_SIZE}, Global, RowMajor>;
+type W_DecAttnOut = Tensor<f32, {HIDDEN_SIZE, HIDDEN_SIZE}, Global, RowMajor>;
+type W_DecFF1 = Tensor<f32, {HIDDEN_SIZE, DECODER_FFN}, Global, RowMajor>;
+type W_DecFF2 = Tensor<f32, {DECODER_FFN, HIDDEN_SIZE}, Global, RowMajor>;
+
+// Speech Decoder Head
+type W_MelProj = Tensor<f32, {HIDDEN_SIZE, MEL_BINS}, Global, RowMajor>;
+type B_MelProj = Tensor<f32, {MEL_BINS}, Global, RowMajor>;
+
+// ======== Compute Tiles (Tile Registers) ========
+
+type T_Hidden = Tensor<f32, {HIDDEN_SIZE}, TileReg, RowMajor>;
+type T_EncFFN = Tensor<f32, {ENCODER_FFN}, TileReg, RowMajor>;
+type T_DecFFN = Tensor<f32, {DECODER_FFN}, TileReg, RowMajor>;
+type T_Mel = Tensor<f32, {MEL_BINS}, TileReg, RowMajor>;
+type T_Head = Tensor<f32, {D_HEAD_ENC}, TileReg, RowMajor>;
+
+// ======== Activation Types ========
+
+type T_TextSeq = Tensor<f32, {MAX_TEXT_LEN, HIDDEN_SIZE}, Global, RowMajor>;
+type T_MelSeq = Tensor<f32, {MAX_SPEECH_LEN, MEL_BINS}, Global, RowMajor>;

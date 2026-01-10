@@ -1,0 +1,44 @@
+target CPU {
+  arch = x86_64;
+  simd = AVX2;
+}
+
+type Vec = Tensor<f32, {16}, TileReg, RowMajor>;
+type QKV = Tensor<f32, {16, 16}, Global, RowMajor>;
+type Proj = Tensor<f32, {16, 16}, Global, RowMajor>;
+type Bias = Tensor<f32, {16}, Global, RowMajor>;
+type MLPW1 = Tensor<f32, {16, 16}, Global, RowMajor>;
+type MLPB1 = Tensor<f32, {16}, Global, RowMajor>;
+type MLPW2 = Tensor<f32, {16, 16}, Global, RowMajor>;
+type MLPB2 = Tensor<f32, {16}, Global, RowMajor>;
+type Gamma = Tensor<f32, {16}, Global, RowMajor>;
+type Beta = Tensor<f32, {16}, Global, RowMajor>;
+
+type Out = Tensor<f32, {16}, TileReg, RowMajor>;
+
+type AttnWeights = Tensor<f32, {16, 16}, TileReg, RowMajor>;
+type Value = Tensor<f32, {16, 16}, TileReg, RowMajor>;
+type MLPHidden = Tensor<f32, {16}, TileReg, RowMajor>;
+
+type Normed = Tensor<f32, {16}, TileReg, RowMajor>;
+
+// Compose a Transformer layer: x -> LN -> Attn -> Add -> LN -> MLP -> Add
+kernel TransformerLayer(Vec x, QKV q, QKV k, QKV v, Proj proj, Bias pbias, Gamma g1, Beta b1, Gamma g2, Beta b2, MLPW1 w1, MLPB1 b1_mlp, MLPW2 w2, MLPB2 b2_mlp, Out out) {
+  Normed ln1;
+  Out attn_out;
+  Normed ln2;
+  Out mlp_out;
+
+  // LayerNorm 1
+  LayerNorm(x, g1, b1, ln1);
+  // Attention
+  Attention(q, k, v, proj, pbias, attn_out);
+  // Residual add
+  attn_out = attn_out + x;
+  // LayerNorm 2
+  LayerNorm(attn_out, g2, b2, ln2);
+  // MLP
+  MLP(ln2, w1, b1_mlp, w2, b2_mlp, mlp_out);
+  // Residual add
+  out = mlp_out + attn_out;
+}

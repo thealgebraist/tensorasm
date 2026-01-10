@@ -1,0 +1,139 @@
+// TTS Inference Kernel using TensorCore DSL
+// Simple encoder-only inference for text encoding
+
+// Constants (will be replaced by tts_types.ta)
+const VOCAB_SIZE = 200;
+const HIDDEN_SIZE = 768;
+const ENCODER_HEADS = 12;
+const D_HEAD = 64;  // HIDDEN_SIZE / ENCODER_HEADS
+const ENCODER_FFN = 3072;
+const SEQ_LEN = 16;
+
+// ======== Type Definitions ========
+
+// Input/Output
+type InputTokens = Tensor<int32, {16}, Global, RowMajor>;
+type OutputHidden = Tensor<f32, {16, 768}, Global, RowMajor>;
+
+// Weights (Global Memory)
+type W_TextEmbed = Tensor<f32, {200, 768}, Global, RowMajor>;
+type W_EncQ = Tensor<f32, {768, 768}, Global, RowMajor>;
+type W_EncK = Tensor<f32, {768, 768}, Global, RowMajor>;
+type W_EncV = Tensor<f32, {768, 768}, Global, RowMajor>;
+type W_EncAttnOut = Tensor<f32, {768, 768}, Global, RowMajor>;
+type W_EncFF1 = Tensor<f32, {768, 3072}, Global, RowMajor>;
+type W_EncFF2 = Tensor<f32, {3072, 768}, Global, RowMajor>;
+
+// Biases
+type B_Enc = Tensor<f32, {768}, Global, RowMajor>;
+type B_EncFFN = Tensor<f32, {3072}, Global, RowMajor>;
+
+// Compute Tiles (Tile Registers)
+type T_Hidden = Tensor<f32, {768}, TileReg, RowMajor>;
+type T_FFN = Tensor<f32, {3072}, TileReg, RowMajor>;
+
+// ======== Encoder Self-Attention Kernel ========
+
+kernel encoder_self_attention(
+    InputTokens tokens,
+    W_TextEmbed embed_w,
+    W_EncQ q_w,
+    W_EncK k_w,
+    W_EncV v_w,
+    B_Enc q_b,
+    B_Enc k_b,
+    B_Enc v_b,
+    W_EncAttnOut out_w,
+    OutputHidden output
+) {
+    // Embed tokens
+    batch(t = 0 .. 16 step 1) {
+        T_Hidden h;
+        LOOKUP(h, embed_w, tokens[t]);
+        
+        // Compute Q, K, V projections
+        T_Hidden q;
+        T_Hidden k;
+        T_Hidden v;
+        
+        MMUL(q, q_w, h);
+        MMUL(k, k_w, h);
+        MMUL(v, v_w, h);
+        
+        // Add biases
+        q = q + q_b;
+        k = k + k_b;
+        v = v + v_b;
+        
+        // Simplified: skip actual attention computation
+        // In full implementation: reshape to heads, compute attention scores, etc
+        
+        // Output projection (using V as placeholder)
+        T_Hidden attn_out;
+        MMUL(attn_out, out_w, v);
+        
+        // Store to output
+        STORE(output[t], attn_out);
+    }
+}
+
+// ======== Encoder Feed-Forward Kernel ========
+
+kernel encoder_feedforward(
+    OutputHidden hidden,
+    W_EncFF1 ff1_w,
+    W_EncFF2 ff2_w,
+    B_EncFFN ff1_b,
+    OutputHidden output
+) {
+    batch(t = 0 .. 16 step 1) {
+        T_Hidden h;
+        LOAD(h, hidden[t]);
+        
+        // FF1: hidden to ffn_dim
+        T_FFN ff1_out;
+        MMUL(ff1_out, ff1_w, h);
+        ff1_out = ff1_out + ff1_b;
+        
+        // Activation: GELU
+        ACT(ff1_out, ff1_out, 0);
+        
+        // FF2: ffn_dim to hidden
+        T_Hidden ff2_out;
+        MMUL(ff2_out, ff2_w, ff1_out);
+        
+        // Store
+        STORE(output[t], ff2_out);
+    }
+}
+
+// ======== Simple Text Encoder Kernel ========
+
+kernel text_encoder_simple(
+    InputTokens tokens,
+    W_TextEmbed embed_w,
+    W_EncQ q_w,
+    W_EncFF1 ff1_w,
+    W_EncFF2 ff2_w,
+    B_EncFFN ff1_b,
+    OutputHidden output
+) {
+    // Simple pass: embed then feedforward
+    batch(t = 0 .. 16 step 1) {
+        // Embed
+        T_Hidden h;
+        LOOKUP(h, embed_w, tokens[t]);
+        
+        // Feed-forward
+        T_FFN ff1_out;
+        MMUL(ff1_out, ff1_w, h);
+        ff1_out = ff1_out + ff1_b;
+        ACT(ff1_out, ff1_out, 0);
+        
+        T_Hidden ff2_out;
+        MMUL(ff2_out, ff2_w, ff1_out);
+        
+        // Store
+        STORE(output[t], ff2_out);
+    }
+}

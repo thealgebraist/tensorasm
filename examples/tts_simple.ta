@@ -1,0 +1,44 @@
+type InputTokens = Tensor<int32, {16}, Global, RowMajor>;
+type OutputHidden = Tensor<f32, {16, 768}, Global, RowMajor>;
+
+type W_TextEmbed = Tensor<f32, {81, 768}, Global, RowMajor>;
+type W_EncQ = Tensor<f32, {768, 768}, Global, RowMajor>;
+type W_EncK = Tensor<f32, {768, 768}, Global, RowMajor>;
+type W_EncV = Tensor<f32, {768, 768}, Global, RowMajor>;
+type W_EncAttnOut = Tensor<f32, {768, 768}, Global, RowMajor>;
+type W_EncFF1 = Tensor<f32, {768, 3072}, Global, RowMajor>;
+type W_EncFF2 = Tensor<f32, {3072, 768}, Global, RowMajor>;
+
+type B_Enc = Tensor<f32, {768}, Global, RowMajor>;
+type B_EncFFN = Tensor<f32, {3072}, Global, RowMajor>;
+
+type T_Hidden = Tensor<f32, {768}, TileReg, RowMajor>;
+type T_FFN = Tensor<f32, {3072}, TileReg, RowMajor>;
+type T_Idx = Tensor<int32, {1}, TileReg, RowMajor>;
+
+kernel text_encoder_simple(
+    InputTokens tokens,
+    W_TextEmbed embed_w,
+    W_EncFF1 ff1_w,
+    W_EncFF2 ff2_w,
+    B_EncFFN ff1_b,
+    OutputHidden output
+) {
+    batch(t = 0 .. 16 step 1) {
+        T_Idx idx;
+        LOAD(idx, tokens[t]);
+        
+        T_Hidden h;
+        LOOKUP(h, embed_w, idx);
+        
+        T_FFN ff1_out;
+        MMUL(ff1_out, ff1_w, h);
+        ff1_out = ff1_out + ff1_b;
+        ACT(ff1_out, ff1_out, 0);
+        
+        T_Hidden ff2_out;
+        MMUL(ff2_out, ff2_w, ff1_out);
+        
+        STORE(output[t], ff2_out);
+    }
+}

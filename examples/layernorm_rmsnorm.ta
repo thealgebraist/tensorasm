@@ -1,0 +1,35 @@
+target CPU {
+  arch = x86_64;
+  simd = AVX2;
+}
+
+type Vec = Tensor<f32, {16}, TileReg, RowMajor>;
+type Gamma = Tensor<f32, {16}, Global, RowMajor>;
+type Beta = Tensor<f32, {16}, Global, RowMajor>;
+
+type Out = Tensor<f32, {16}, TileReg, RowMajor>;
+
+// LayerNorm: out = gamma * (x - mean) / sqrt(var + eps) + beta
+kernel LayerNorm(Vec x, Gamma gamma, Beta beta, Out out) {
+  Vec mean;
+  Vec var;
+  Vec normed;
+  REDUCE(mean, x); // mean = sum(x)
+  mean = mean / 16.0;
+  var = (x - mean).array().square();
+  REDUCE(var, var);
+  var = var / 16.0;
+  normed = (x - mean) / SQRT(var + 1e-5);
+  out = normed.array() * gamma.array() + beta.array();
+}
+
+// RMSNorm: out = gamma * x / sqrt(mean(x^2) + eps)
+kernel RMSNorm(Vec x, Gamma gamma, Out out) {
+  Vec sq;
+  Vec mean_sq;
+  sq = x.array().square();
+  REDUCE(mean_sq, sq);
+  mean_sq = mean_sq / 16.0;
+  out = x / SQRT(mean_sq + 1e-5);
+  out = out.array() * gamma.array();
+}
