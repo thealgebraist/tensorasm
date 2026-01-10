@@ -98,41 +98,6 @@ using OutputTile = Eigen::Matrix<float, 1, 16, Eigen::RowMajor>;
 using WeightTile = Eigen::Matrix<float, 16, 16, Eigen::RowMajor>;
 using BiasTile = Eigen::Matrix<float, 1, 16, Eigen::RowMajor>;
 
-void AttentionQuery(InputVec& x, WeightMatrix& W, BiasVec& b, OutputVec& out) {
-  InputTile tx; tx.setZero();
-  WeightTile tW; tW.setZero();
-  BiasTile tb; tb.setZero();
-  OutputTile tout; tout.setZero();
-  hw::LOAD(tx, x.data());
-  hw::LOAD(tW, W.data());
-  hw::LOAD(tb, b.data());
-  hw::ASSIGN(tout, 0);
-  hw::MMUL(tout, tx, tW);
-  hw::ASSIGN(tout, (tout + tb));
-  hw::STORE(out.data(), tout);
-}
-
-void LinearLayer(InputVec& x, WeightMatrix& W, BiasVec& b, OutputVec& out) {
-  InputTile tx; tx.setZero();
-  WeightTile tW; tW.setZero();
-  BiasTile tb; tb.setZero();
-  OutputTile tout; tout.setZero();
-  hw::LOAD(tx, x.data());
-  hw::LOAD(tW, W.data());
-  hw::LOAD(tb, b.data());
-  hw::ASSIGN(tout, 0);
-  hw::MMUL(tout, tx, tW);
-  hw::ASSIGN(tout, (tout + tb));
-  hw::STORE(out.data(), tout);
-}
-
-void GELU(InputVec& x, OutputVec& out) {
-  InputTile tx; tx.setZero();
-  hw::LOAD(tx, x.data());
-  hw::ACT(tx, 1);
-  hw::STORE(out.data(), tx);
-}
-
 void RunInference(InputVec& x, WeightMatrix& W, BiasVec& b, OutputVec& out, OutputVec& out_gelu) {
   InputTile tx; tx.setZero();
   WeightTile tW; tW.setZero();
@@ -147,58 +112,4 @@ void RunInference(InputVec& x, WeightMatrix& W, BiasVec& b, OutputVec& out, Outp
   hw::STORE(out.data(), tout);
   hw::ACT(tout, 1);
   hw::STORE(out_gelu.data(), tout);
-}
-
-int main() {
-  auto x_ptr = std::make_unique<InputVec>();
-  InputVec& x = *x_ptr;
-  hw::FILE_LOAD(x, "weights/x.bin");
-  auto W_ptr = std::make_unique<WeightMatrix>();
-  WeightMatrix& W = *W_ptr;
-  hw::FILE_LOAD(W, "weights/W.bin");
-  auto b_ptr = std::make_unique<BiasVec>();
-  BiasVec& b = *b_ptr;
-  hw::FILE_LOAD(b, "weights/b.bin");
-  auto out_ptr = std::make_unique<OutputVec>();
-  OutputVec& out = *out_ptr;
-  hw::FILE_LOAD(out, "weights/out.bin");
-  AttentionQuery(x, W, b, out);
-  auto x_ptr = std::make_unique<InputVec>();
-  InputVec& x = *x_ptr;
-  hw::FILE_LOAD(x, "weights/x.bin");
-  auto W_ptr = std::make_unique<WeightMatrix>();
-  WeightMatrix& W = *W_ptr;
-  hw::FILE_LOAD(W, "weights/W.bin");
-  auto b_ptr = std::make_unique<BiasVec>();
-  BiasVec& b = *b_ptr;
-  hw::FILE_LOAD(b, "weights/b.bin");
-  auto out_ptr = std::make_unique<OutputVec>();
-  OutputVec& out = *out_ptr;
-  hw::FILE_LOAD(out, "weights/out.bin");
-  LinearLayer(x, W, b, out);
-  auto x_ptr = std::make_unique<InputVec>();
-  InputVec& x = *x_ptr;
-  hw::FILE_LOAD(x, "weights/x.bin");
-  auto out_ptr = std::make_unique<OutputVec>();
-  OutputVec& out = *out_ptr;
-  hw::FILE_LOAD(out, "weights/out.bin");
-  GELU(x, out);
-  auto x_ptr = std::make_unique<InputVec>();
-  InputVec& x = *x_ptr;
-  hw::FILE_LOAD(x, "weights/x.bin");
-  auto W_ptr = std::make_unique<WeightMatrix>();
-  WeightMatrix& W = *W_ptr;
-  hw::FILE_LOAD(W, "weights/W.bin");
-  auto b_ptr = std::make_unique<BiasVec>();
-  BiasVec& b = *b_ptr;
-  hw::FILE_LOAD(b, "weights/b.bin");
-  auto out_ptr = std::make_unique<OutputVec>();
-  OutputVec& out = *out_ptr;
-  hw::FILE_LOAD(out, "weights/out.bin");
-  auto out_gelu_ptr = std::make_unique<OutputVec>();
-  OutputVec& out_gelu = *out_gelu_ptr;
-  hw::FILE_LOAD(out_gelu, "weights/out_gelu.bin");
-  RunInference(x, W, b, out, out_gelu);
-  std::cout << "Kernel execution successful." << std::endl;
-  return 0;
 }

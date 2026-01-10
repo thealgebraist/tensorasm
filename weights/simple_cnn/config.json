@@ -1,0 +1,18 @@
+{
+  "model_type": "simple_cnn",
+  "layer": "conv1",
+  "input_channels": 3,
+  "output_channels": 16,
+  "kernel_size": 3,
+  "shapes": {
+    "W": [
+      16,
+      3,
+      3,
+      3
+    ],
+    "b": [
+      16
+    ]
+  }
+}

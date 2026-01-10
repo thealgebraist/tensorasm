@@ -1,0 +1,16 @@
+{
+  "model_type": "vit-base-patch16-224",
+  "layer": "encoder.layer[0].attention.query",
+  "input_dim": 16,
+  "output_dim": 16,
+  "total_params": 86567656,
+  "shapes": {
+    "W": [
+      16,
+      16
+    ],
+    "b": [
+      16
+    ]
+  }
+}
