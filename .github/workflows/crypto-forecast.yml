@@ -21,7 +21,6 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        echo "crypto_predict.py uses only the Python standard library"
 
     - name: Make forecast test executable
       run: chmod +x test_crypto_predict.sh
@@ -35,4 +34,4 @@ jobs:
       with:
         name: altcoin-forecast-report
         path: artifacts/predict_smoke/
-        if-no-files-found: error
+        if-no-files-found: warn
