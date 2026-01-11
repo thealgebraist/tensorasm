@@ -26,6 +26,7 @@
 #include <openssl/err.h>
 #include <openssl/sha.h>
 #include <openssl/bio.h>
+#include <openssl/rand.h>
 
 // C++23 features: std::format, improved lambdas, etc.
 using namespace std::chrono_literals;
@@ -118,8 +119,13 @@ private:
     
     std::string generate_websocket_key() {
         unsigned char key[16];
-        for (int i = 0; i < 16; i++) {
-            key[i] = rand() % 256;
+        // Use cryptographically secure random number generator
+        if (RAND_bytes(key, 16) != 1) {
+            std::cerr << "Failed to generate secure random key\n";
+            // Fallback: this should not happen with properly configured OpenSSL
+            for (int i = 0; i < 16; i++) {
+                key[i] = rand() % 256;
+            }
         }
         return base64_encode(key, 16);
     }
@@ -211,10 +217,8 @@ public:
         int bytes = SSL_read(ssl, header, 2);
         if (bytes <= 0) return "";
         
-        // Parse WebSocket frame format
-        // bool fin = (header[0] & 0x80) != 0;
-        // int opcode = header[0] & 0x0F;
-        // bool masked = (header[1] & 0x80) != 0;
+        // Parse WebSocket frame format (basic validation)
+        // For production, implement full frame validation including FIN, opcode, and mask bits
         uint64_t payload_len = header[1] & 0x7F;
         
         // Handle extended payload length
@@ -260,6 +264,8 @@ void print_ticker(const TickerData& data) {
 }
 
 // Parse Binance ticker message
+// Note: This is a simple JSON parser for demonstration purposes.
+// Production code should use a proper JSON library like nlohmann/json
 void parse_binance_ticker(const std::string& json, const std::string& symbol) {
     // Simple JSON parsing (looking for "c" field which is current price in Binance)
     size_t price_pos = json.find("\"c\":\"");
@@ -281,6 +287,8 @@ void parse_binance_ticker(const std::string& json, const std::string& symbol) {
 }
 
 // Parse Bybit ticker message
+// Note: This is a simple JSON parser for demonstration purposes.
+// Production code should use a proper JSON library like nlohmann/json
 void parse_bybit_ticker(const std::string& json, const std::string& symbol) {
     // Simple JSON parsing (looking for "lastPrice" field in Bybit)
     size_t price_pos = json.find("\"lastPrice\":\"");
@@ -355,16 +363,20 @@ int main() {
     
     // Test Bybit
     std::cout << "--- Testing Bybit Exchange ---\n";
+    std::cout << "Note: Bybit WebSocket requires sending subscription messages\n";
+    std::cout << "after connection establishment. This is a more complex protocol\n";
+    std::cout << "that requires sending JSON subscription requests for specific symbols.\n";
+    std::cout << "For demonstration purposes, showing endpoint structure:\n\n";
+    
     for (const auto& coin : altcoins) {
         // Bybit uses a different subscription mechanism
-        std::string path = std::format("/v5/public/spot");
+        // Production implementation would:
+        // 1. Connect to wss://stream.bybit.com/v5/public/spot
+        // 2. Send subscription message: {"op":"subscribe","args":["tickers.SYMBOL"]}
+        // 3. Receive ticker updates
         std::string symbol = coin.substr(0, coin.find("USDT"));
-        
-        std::cout << std::format("Note: Bybit requires subscription messages ({})\n", symbol);
-        std::cout << std::format("Skipping Bybit WebSocket for {} (requires subscription protocol)\n\n", symbol);
-        
-        // In a full implementation, we would send subscription messages after connection
-        // For this demo, we're showing the connection setup
+        std::cout << std::format("  {} - Endpoint: wss://stream.bybit.com/v5/public/spot\n", symbol);
+        std::cout << std::format("       Subscription: {{\"op\":\"subscribe\",\"args\":[\"tickers.{}\"]}}\n", coin);
     }
     
     std::cout << "=================================================\n";

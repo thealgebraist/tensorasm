@@ -105,7 +105,10 @@ fi
 
 # Test 11: Check for all 4 altcoins
 echo -n "Testing: Monitors 4 altcoins (ETH, BNB, SOL, ADA)... "
-if grep -q "ETHUSDT.*BNBUSDT.*SOLUSDT.*ADAUSDT" crypto_ws_client.cpp; then
+if grep -q "ETHUSDT" crypto_ws_client.cpp && \
+   grep -q "BNBUSDT" crypto_ws_client.cpp && \
+   grep -q "SOLUSDT" crypto_ws_client.cpp && \
+   grep -q "ADAUSDT" crypto_ws_client.cpp; then
     echo -e "${GREEN}✓ PASSED${NC}"
     ((TESTS_PASSED++))
 else
