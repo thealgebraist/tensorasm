@@ -93,4 +93,4 @@ Run the Python forecaster to generate a live altcoin report with LaTeX/PDF outpu
 python3 crypto_predict.py --wait-seconds 0 --output-dir artifacts/predict_smoke
 ```
 
-The pipeline fetches prices for MATIC, AVAX, LINK, and ATOM, writes `altcoin_forecast.tex`, and compiles `altcoin_forecast.pdf` in `artifacts/predict_smoke` (with a fallback PDF if LaTeX is unavailable). Use `--loop` to repeat the forecast on an interval.
+The pipeline fetches prices for MATIC, AVAX, LINK, and ATOM, writes `altcoin_forecast.tex`, and compiles `altcoin_forecast.pdf` in `artifacts/predict_smoke` (with a fallback PDF if LaTeX is unavailable). Use `--loop` to repeat the forecast on an interval, or change `--output-dir` to store reports elsewhere.
