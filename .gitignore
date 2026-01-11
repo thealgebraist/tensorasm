@@ -2,6 +2,10 @@ weights/tts/model.pt
 *.pt
 crypto_ws_client
 crypto_ws_test
+crypto_predict_cpp23
+crypto_extended_tests
+crypto_prediction_results.txt
+crypto_extended_results.csv
 artifacts/
 __pycache__/
 *.pyc

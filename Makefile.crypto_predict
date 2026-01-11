@@ -2,34 +2,45 @@
 
 CXX = g++
 CXXFLAGS = -std=c++23 -Wall -Wextra -O3 -march=native
-TARGET = crypto_predict_cpp23
-SOURCE = crypto_predict_cpp23.cpp
+TARGET1 = crypto_predict_cpp23
+TARGET2 = crypto_extended_tests
+SOURCE1 = crypto_predict_cpp23.cpp
+SOURCE2 = crypto_extended_tests.cpp
 
-.PHONY: all clean run test
+.PHONY: all clean run test extended
 
-all: $(TARGET)
+all: $(TARGET1) $(TARGET2)
 
-$(TARGET): $(SOURCE)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SOURCE)
-	@echo "✓ Build complete: ./$(TARGET)"
+$(TARGET1): $(SOURCE1)
+	$(CXX) $(CXXFLAGS) -o $(TARGET1) $(SOURCE1)
+	@echo "✓ Build complete: ./$(TARGET1)"
 
-run: $(TARGET)
-	./$(TARGET)
+$(TARGET2): $(SOURCE2)
+	$(CXX) $(CXXFLAGS) -o $(TARGET2) $(SOURCE2)
+	@echo "✓ Build complete: ./$(TARGET2)"
 
-test: $(TARGET)
+run: $(TARGET1)
+	./$(TARGET1)
+
+extended: $(TARGET2)
+	@echo "Running extended cryptocurrency prediction tests..."
+	./$(TARGET2)
+
+test: $(TARGET1)
 	@echo "Running cryptocurrency prediction tests..."
-	./$(TARGET)
+	./$(TARGET1)
 	@if [ -f crypto_prediction_results.txt ]; then \
 		echo "✓ Results file generated"; \
 		cat crypto_prediction_results.txt; \
 	fi
 
 clean:
-	rm -f $(TARGET) crypto_prediction_results.txt
+	rm -f $(TARGET1) $(TARGET2) crypto_prediction_results.txt crypto_extended_results.csv
 
 help:
 	@echo "Available targets:"
-	@echo "  make all   - Build the crypto prediction program"
-	@echo "  make run   - Build and run the program"
-	@echo "  make test  - Build, run, and display results"
-	@echo "  make clean - Remove built binaries and results"
+	@echo "  make all      - Build both prediction programs"
+	@echo "  make run      - Build and run the basic prediction program"
+	@echo "  make extended - Build and run extended tests with variations"
+	@echo "  make test     - Build, run, and display basic results"
+	@echo "  make clean    - Remove built binaries and results"
