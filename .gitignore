@@ -3,3 +3,5 @@ weights/tts/model.pt
 crypto_ws_client
 crypto_ws_test
 artifacts/
+__pycache__/
+*.pyc
