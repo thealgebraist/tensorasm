@@ -23,7 +23,7 @@ jobs:
     - name: Install LaTeX (for PDF report)
       run: |
         sudo apt-get update
-        sudo apt-get install -y texlive-latex-base
+        sudo apt-get install -y texlive-latex-recommended
 
     - name: Make forecast test executable
       run: chmod +x test_crypto_predict.sh
