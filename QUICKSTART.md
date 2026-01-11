@@ -84,3 +84,13 @@ Connecting to Binance for ETH...
 ## More Information
 
 See `CRYPTO_WS_README.md` for complete documentation.
+
+## Altcoin Forecast Pipeline (PDF)
+
+Run the Python forecaster to generate a live altcoin report with LaTeX/PDF output:
+
+```bash
+python3 crypto_predict.py --wait-seconds 0 --output-dir artifacts/altcoin_forecast
+```
+
+The pipeline fetches prices for MATIC, AVAX, LINK, and ATOM, writes `altcoin_forecast.tex`, and compiles `altcoin_forecast.pdf` (with a fallback PDF if LaTeX is unavailable). Use `--loop` to repeat the forecast on an interval.

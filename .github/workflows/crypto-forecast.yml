@@ -1,0 +1,38 @@
+name: Crypto Forecast Report
+
+on:
+  push:
+    branches: [ main, copilot/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install LaTeX tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y texlive-latex-base
+
+    - name: Make forecast test executable
+      run: chmod +x test_crypto_predict.sh
+
+    - name: Run altcoin forecast pipeline
+      run: ./test_crypto_predict.sh
+
+    - name: Upload forecast artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: altcoin-forecast-report
+        path: artifacts/predict_smoke/
+        if-no-files-found: error
