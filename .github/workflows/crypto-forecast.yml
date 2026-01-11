@@ -16,7 +16,12 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.x'
+        python-version: '3.11'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        echo "crypto_predict.py uses only the Python standard library"
 
     - name: Make forecast test executable
       run: chmod +x test_crypto_predict.sh
