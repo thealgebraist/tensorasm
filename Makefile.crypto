@@ -1,0 +1,28 @@
+# Makefile for Crypto WebSocket Client
+
+CXX = g++
+CXXFLAGS = -std=c++23 -Wall -Wextra -O2
+LDFLAGS = -lssl -lcrypto
+
+TARGET = crypto_ws_client
+SOURCE = crypto_ws_client.cpp
+
+.PHONY: all clean run
+
+all: $(TARGET)
+
+$(TARGET): $(SOURCE)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SOURCE) $(LDFLAGS)
+	@echo "Build complete: ./$(TARGET)"
+
+run: $(TARGET)
+	./$(TARGET)
+
+clean:
+	rm -f $(TARGET)
+
+help:
+	@echo "Available targets:"
+	@echo "  make all   - Build the crypto WebSocket client"
+	@echo "  make run   - Build and run the client"
+	@echo "  make clean - Remove built binaries"
