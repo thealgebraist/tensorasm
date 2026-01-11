@@ -5,12 +5,15 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <numbers>
+#include <numeric>
 #include <random>
 #include <string>
 #include <string_view>
@@ -333,7 +336,6 @@ int main() {
     
     std::vector<DetailedResult> all_results;
     int test_count = 0;
-    int total_tests = ALTCOINS.size() * METHODS.size() * SCENARIOS.size();
     
     for (const auto& coin : ALTCOINS) {
         for (const auto& method : METHODS) {
