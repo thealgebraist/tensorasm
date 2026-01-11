@@ -12,6 +12,7 @@ import os
 import shutil
 import subprocess
 import time
+import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -415,12 +416,44 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_ALTCOINS,
         help="Override the default altcoin symbols.",
     )
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="Run continuously at configurable intervals.",
+    )
+    parser.add_argument(
+        "--interval-seconds",
+        type=float,
+        default=60.0,
+        help="Seconds between successive forecasts when looping (default: 60).",
+    )
+    parser.add_argument(
+        "--iterations",
+        type=int,
+        default=0,
+        help="Number of loop iterations (0 means infinite; ignored unless --loop is set).",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    run_forecast(args.altcoins, args.wait_seconds, args.output_dir)
+    if not args.loop:
+        run_forecast(args.altcoins, args.wait_seconds, args.output_dir)
+        return
+
+    iteration = 0
+    while True:
+        iteration += 1
+        try:
+            run_forecast(args.altcoins, args.wait_seconds, args.output_dir)
+        except KeyboardInterrupt:
+            raise
+        except Exception as exc:
+            print(f"Forecast iteration {iteration} failed: {exc}", file=sys.stderr)
+        if args.iterations > 0 and iteration >= args.iterations:
+            break
+        time.sleep(args.interval_seconds)
 
 
 if __name__ == "__main__":
