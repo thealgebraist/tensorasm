@@ -1,2 +1,4 @@
 weights/tts/model.pt
 *.pt
+crypto_ws_client
+crypto_ws_test
