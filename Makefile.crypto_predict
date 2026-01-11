@@ -1,0 +1,35 @@
+# Makefile for Cryptocurrency Price Prediction (C++23)
+
+CXX = g++
+CXXFLAGS = -std=c++23 -Wall -Wextra -O3 -march=native
+TARGET = crypto_predict_cpp23
+SOURCE = crypto_predict_cpp23.cpp
+
+.PHONY: all clean run test
+
+all: $(TARGET)
+
+$(TARGET): $(SOURCE)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SOURCE)
+	@echo "✓ Build complete: ./$(TARGET)"
+
+run: $(TARGET)
+	./$(TARGET)
+
+test: $(TARGET)
+	@echo "Running cryptocurrency prediction tests..."
+	./$(TARGET)
+	@if [ -f crypto_prediction_results.txt ]; then \
+		echo "✓ Results file generated"; \
+		cat crypto_prediction_results.txt; \
+	fi
+
+clean:
+	rm -f $(TARGET) crypto_prediction_results.txt
+
+help:
+	@echo "Available targets:"
+	@echo "  make all   - Build the crypto prediction program"
+	@echo "  make run   - Build and run the program"
+	@echo "  make test  - Build, run, and display results"
+	@echo "  make clean - Remove built binaries and results"

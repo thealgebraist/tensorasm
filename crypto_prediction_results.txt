@@ -1,0 +1,15 @@
+Cryptocurrency Price Prediction Results
+========================================
+
+Test completed at: 2026-01-11 16:22:33.061498255
+
+ETH: 720 data points generated
+BNB: 720 data points generated
+SOL: 720 data points generated
+ADA: 720 data points generated
+
+Methods tested:
+- Power Iteration
+- QR Algorithm
+- Rayleigh Quotient
+- Subspace Iteration
